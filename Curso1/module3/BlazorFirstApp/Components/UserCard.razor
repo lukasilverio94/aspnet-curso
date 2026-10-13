@@ -1,0 +1,35 @@
+<div class="card" style="margin: 1rem 0; padding: 1rem; border: 1px solid #ddd; border-radius: 5px;">
+    <h4>@Name</h4>
+    <p><strong>Email:</strong> @Email</p>
+    <p><strong>Role:</strong> @Role</p>
+    <button class="btn btn-sm btn-outline-primary" @onclick="ToggleDetails">
+        @(ShowDetails ? "Hide Details" : "Show Details")
+    </button>
+    
+    @if (ShowDetails)
+    {
+        <div class="mt-2 p-2" style="background-color: #f8f9fa; border-radius: 3px;">
+            <p><strong>Department:</strong> @Department</p>
+            <p><strong>Joined:</strong> @JoinDate.ToString("MMMM yyyy")</p>
+            @if (!string.IsNullOrEmpty(PhoneNumber))
+            {
+                <p><strong>Phone:</strong> @PhoneNumber</p>
+            }
+        </div>
+    }
+</div>
+@code {
+    [Parameter] public string Name { get; set; } = "";
+    [Parameter] public string Email { get; set; } = "";
+    [Parameter] public string Role { get; set; } = "";
+    [Parameter] public string Department { get; set; } = "";
+    [Parameter] public string PhoneNumber { get; set; } = "";
+    [Parameter] public DateTime JoinDate { get; set; } = DateTime.Now;
+    
+    private bool ShowDetails = false;
+    
+    private void ToggleDetails()
+    {
+        ShowDetails = !ShowDetails;
+    }
+}

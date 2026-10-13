@@ -1,0 +1,22 @@
+@{
+    ViewData["Title"] = "Form";
+}
+
+<h1>Form</h1>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success" role="status">@successMessage</div>
+}
+else if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger" role="alert">@errorMessage</div>
+}
+
+<form asp-controller="Home" asp-action="ProcessForm" method="post">
+    <div class="mb-3">
+        <label for="userInput" class="form-label">Your input</label>
+        <input id="userInput" name="userInput" class="form-control" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>

@@ -1,0 +1,35 @@
+@page "/feedback-list"
+@using FeedbackApp.Models
+@using FeedbackApp.Services
+@inject FeedbackState FeedbackState
+
+<h3>Submitted Feedback</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Comment</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var feedback in feedbackListItems)
+        {
+            <tr>
+                <td>@feedback.Name</td>
+                <td>@feedback.Email</td>
+                <td>@feedback.Comment</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Feedback> feedbackListItems = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        feedbackListItems = await FeedbackState.LoadFeedbackAsync();
+    }
+}

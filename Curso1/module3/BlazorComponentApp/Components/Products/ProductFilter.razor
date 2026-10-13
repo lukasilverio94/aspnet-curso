@@ -1,0 +1,85 @@
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">Filter products</h5>
+
+        <div class="row g-3">
+            <div class="col-md-5">
+                <label class="form-label" for="product-search">Search</label>
+                <input id="product-search"
+                       class="form-control"
+                       type="search"
+                       placeholder="Search products..."
+                       @bind="searchTerm"
+                       @bind:event="oninput" />
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label" for="product-category">Category</label>
+                <select id="product-category" class="form-select" @bind="selectedCategory">
+                    <option value="">All categories</option>
+                    @foreach (var category in Categories)
+                    {
+                        <option value="@category">@category</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-3 d-flex align-items-end">
+                <button class="btn btn-primary w-100" type="button" @onclick="ApplyFilter">
+                    Apply filters
+                </button>
+            </div>
+        </div>
+
+        <div class="mt-3 d-flex gap-2">
+            <label class="form-check-label">
+                <input class="form-check-input" type="checkbox" @bind="inStockOnly" />
+                In stock only
+            </label>
+
+            <button class="btn btn-link btn-sm p-0" type="button" @onclick="ResetFilter">
+                Clear filters
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public IEnumerable<string> Categories { get; set; } = Enumerable.Empty<string>();
+
+    [Parameter]
+    public EventCallback<ProductFilterOptions> OnFilterChanged { get; set; }
+
+    private string searchTerm = string.Empty;
+    private string selectedCategory = string.Empty;
+    private bool inStockOnly;
+
+    private async Task ApplyFilter()
+    {
+        await OnFilterChanged.InvokeAsync(new ProductFilterOptions
+        {
+            SearchTerm = searchTerm,
+            Category = selectedCategory,
+            InStockOnly = inStockOnly
+        });
+    }
+
+    private async Task ResetFilter()
+    {
+        searchTerm = string.Empty;
+        selectedCategory = string.Empty;
+        inStockOnly = false;
+
+        await OnFilterChanged.InvokeAsync(new ProductFilterOptions());
+    }
+
+    public class ProductFilterOptions
+    {
+        public string SearchTerm { get; set; } = string.Empty;
+
+        public string Category { get; set; } = string.Empty;
+
+        public bool InStockOnly { get; set; }
+    }
+}

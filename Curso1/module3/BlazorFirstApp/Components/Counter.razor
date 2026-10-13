@@ -1,0 +1,48 @@
+<div class="text-center p-3" style="border: 2px solid #007bff; border-radius: 10px; background-color: #f8f9fa;">
+    <h5>@Title</h5>
+    <p class="display-4 text-primary">@CurrentCount</p>
+    <div>
+        <button class="btn btn-outline-danger me-2" @onclick="Decrement" disabled="@(CurrentCount <= 0)">
+            - Decrease
+        </button>
+        <button class="btn btn-success me-2" @onclick="Increment">
+            + Increase
+        </button>
+        <button class="btn btn-outline-secondary" @onclick="Reset">
+            Reset
+        </button>
+    </div>
+    @if (CurrentCount > 10)
+    {
+        <div class="alert alert-warning mt-2">
+            <small>Wow, that's a high number!</small>
+        </div>
+    }
+</div>
+@code {
+    [Parameter] public string Title { get; set; } = "Counter";
+    [Parameter] public int InitialValue { get; set; } = 0;
+    
+    private int CurrentCount;
+    
+    protected override void OnInitialized()
+    {
+        CurrentCount = InitialValue;
+    }
+    
+    private void Increment()
+    {
+        CurrentCount++;
+    }
+    
+    private void Decrement()
+    {
+        CurrentCount--;
+    }
+    
+    private void Reset()
+    {
+        CurrentCount = InitialValue;
+    }
+}
+

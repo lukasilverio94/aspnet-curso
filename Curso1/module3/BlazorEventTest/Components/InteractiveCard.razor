@@ -1,0 +1,40 @@
+@rendermode InteractiveServer
+
+<div class="@(isExpanded ? "card expanded" : "card collapsed")">
+    <div class="card-header">
+        <h3>Interactive Product Card</h3>
+        <button type="button" class="expand-button" @onclick="ToggleExpand">
+            @(isExpanded ? "Hide Details" : "Show Details")
+        </button>
+    </div>
+
+    @if (isExpanded)
+    {
+        <div class="card-body">
+            <p>This is an interactive product card. Click the "Details" button to toggle the visibility of this section.</p>
+            <ul>
+                <li>Feature 1: High-quality materials</li>
+                <li>Feature 2: Innovative design</li>
+                <li>Feature 3: Affordable price</li>
+            </ul>
+        </div>
+    }
+</div>
+
+<div class="form-section">
+    <label for="productName">Product Name:</label>
+    <input id="productName" class="text-input" @bind="productName" @bind:event="oninput" />
+    <p>Current value: @productName</p>
+</div>
+
+@code
+{
+    private bool isExpanded = false;
+    private string productName = "Sample Product";
+
+    private async Task ToggleExpand()
+    {
+        isExpanded = !isExpanded;
+        await InvokeAsync(StateHasChanged);
+    }
+}

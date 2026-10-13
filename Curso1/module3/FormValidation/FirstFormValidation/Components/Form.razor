@@ -1,0 +1,33 @@
+<EditForm Model="Model" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <p>
+        <label>
+            Username:
+            <InputText @bind-Value="Model.Name" />
+        </label>
+        <ValidationMessage For="() => Model.Name" />
+    </p>
+
+    <p>
+        <label>
+            Email:
+            <InputNumber @bind-Value="Model.Email" />
+        </label>
+        <ValidationMessage For="() => Model.Email" />
+    </p>
+
+    <button type="submit">Submit</button>
+</EditForm>
+
+@code
+{
+    private UserDetails Model { get; } = new UserDetails();
+
+    private void HandleSubmit()
+    {
+        // Handle form submission logic here
+        Console.WriteLine($"Name: {Model.Name}, Email: {Model.Email}");
+    }
+}

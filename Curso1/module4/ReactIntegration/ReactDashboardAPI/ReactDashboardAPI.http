@@ -1,0 +1,6 @@
+@ReactDashboardAPI_HostAddress = http://localhost:5120
+
+GET {{ReactDashboardAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,53 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+<div class="row mt-4">
+    <div class="col-md-6">
+        <h2>Team Members</h2>
+        <component type="typeof(BlazorFirstApp.Components.UserCard)" 
+                   render-mode="ServerPrerendered"
+                   param-Name="@("Sarah Johnson")"
+                   param-Email="@("sarah.johnson@company.com")"
+                   param-Role="@("Senior Developer")"
+                   param-Department="@("Engineering")"
+                   param-PhoneNumber="@("(555) 123-4567")"
+                   param-JoinDate='@new DateTime(2021, 6, 15)' />
+                   
+        <component type="typeof(BlazorFirstApp.Components.UserCard)" 
+                   render-mode="ServerPrerendered"
+                   param-Name="@("Mike Chen")"
+                   param-Email="@("mike.chen@company.com")"
+                   param-Role="@("Product Manager")"
+                   param-Department="@("Product")"
+                   param-JoinDate='@DateTime.Parse("2022-01-10")' />
+    </div>
+    
+    <div class="col-md-6">
+        <h2>Interactive Demo</h2>
+        <component type="typeof(BlazorFirstApp.Components.Counter)" 
+                   render-mode="ServerPrerendered"
+                   param-Title="@("Page Views")"
+                   param-InitialValue="42" />
+                   
+        <div class="mt-3">
+            <component type="typeof(BlazorFirstApp.Components.Counter)" 
+                       render-mode="ServerPrerendered"
+                       param-Title="@("User Interactions")"
+                       param-InitialValue="0" />
+        </div>
+    </div>
+</div>
+<div class="mt-4">
+    <h3>Traditional vs. Component Comparison</h3>
+    <p>Compare how these Blazor components differ from traditional partial views:</p>
+    <ul>
+        <li><strong>State Management:</strong> Components maintain their own state (try clicking the buttons)</li>
+        <li><strong>Interactivity:</strong> No page refreshes needed for user interactions</li>
+        <li><strong>Reusability:</strong> Same component used multiple times with different parameters</li>
+        <li><strong>C# Logic:</strong> All behavior written in C# instead of JavaScript</li>
+    </ul>
+</div>

@@ -1,0 +1,78 @@
+@page "/products"
+@using BlazorComponentApp
+
+<div class="row">
+    @if (Products.Any())
+    {
+        @foreach (Product product in Products)
+        {
+            <div class="col-md-4 mb-3">
+                <ProductCart Item="product" />
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Everyday Backpack</h5>
+                    <p class="card-text">A durable backpack for work, school, and travel.</p>
+                    <p class="card-text"><strong>$49.99</strong></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Insulated Water Bottle</h5>
+                    <p class="card-text">A reusable bottle that keeps drinks at the right temperature.</p>
+                    <p class="card-text"><strong>$24.99</strong></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Wireless Headphones</h5>
+                    <p class="card-text">Comfortable headphones for music and calls on the go.</p>
+                    <p class="card-text"><strong>$79.99</strong></p>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public IEnumerable<Product> Products { get; set; } = new[]
+    {
+        new Product
+        {
+            Id = 1,
+            Name = "Everyday Backpack",
+            Description = "A durable backpack for work, school, and travel.",
+            Category = "Accessories",
+            Price = 49.99m,
+            ImageUrl = "https://example.com/images/backpack.jpg"
+        },
+        new Product
+        {
+            Id = 2,
+            Name = "Insulated Water Bottle",
+            Description = "A reusable bottle that keeps drinks at the right temperature.",
+            Category = "Accessories",
+            Price = 24.99m,
+            ImageUrl = "https://example.com/images/water-bottle.jpg"
+        },
+        new Product
+        {
+            Id = 3,
+            Name = "Wireless Headphones",
+            Description = "Comfortable headphones for music and calls on the go.",
+            Category = "Electronics",
+            Price = 79.99m,
+            ImageUrl = "https://example.com/images/headphones.jpg"
+        }
+    };
+}

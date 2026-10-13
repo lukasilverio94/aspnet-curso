@@ -1,0 +1,41 @@
+﻿@{
+    ViewData[index: "Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <button id="loadDataBtn" class="btn btn-primary">Load User Data</button>
+    <div id="userData"></div>
+</div>
+
+@section Scripts {
+    <script>
+        var userName = '@ViewBag.UserName';
+        var userSettings = @Html.Raw(Json.Serialize(ViewBag.UserSettings));
+
+        $(document).ready(function () {
+            console.log('User: ', userName);
+            console.log("Settings: ", userSettings);
+        });
+
+        // AJAX CALL EXAMPLE
+        $('#loadDataBtn').click(function () {
+            $.ajax({
+                url: '/Home/GetUserData',
+                type: 'GET',
+                success: function (data) {
+                    console.log('Received data: ', data);
+                    $('#userData').html(
+                        `<p>Name: ${data.name}</p>
+                         <p>Email: ${data.email}</p>
+                         <p>Last Login: ${data.lastLogin}</p>
+                        `);
+                },
+                error: function () {
+                    alert('Error loading data')
+                }
+            })
+        })
+    </script>
+}
