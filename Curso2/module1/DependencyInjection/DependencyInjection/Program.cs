@@ -6,8 +6,9 @@ var builder = WebApplication.CreateBuilder(args);
 // não importa quantas vezes é chamado
 // 4. Mudar de Singleton para AddScoped -> Aqui é uma nova instanciação por Requests
 // ou seja, o ServiceID vai ser diferente para cada requisição.
-builder.Services.AddScoped<IMyService, MyService>();
-
+builder.Services.AddSingleton<IMyService, MyService>(); // Singleton
+// builder.Services.AddScoped<IMyService, MyService>(); // Scoped
+// builder.Services.AddTransient<IMyService, MyService>(); Transient
 var app = builder.Build();
 
 // middleware to use in other contexts
@@ -33,6 +34,7 @@ app.MapGet("/", (IMyService myService) =>
 });
 
 app.Run();
+
 
 // 1. Creating a custom Interface / Service
 public interface IMyService
