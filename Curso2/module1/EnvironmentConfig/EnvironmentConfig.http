@@ -1,0 +1,6 @@
+@EnvironmentConfig_HostAddress = http://localhost:5122
+
+GET {{EnvironmentConfig_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
