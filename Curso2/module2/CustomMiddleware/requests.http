@@ -1,0 +1,19 @@
+GET http://localhost:5284/blogs
+
+### 
+POST http://localhost:5284/blogs
+Content-Type: application/json
+
+{
+    "title": "my title",
+    "body": "my body"
+}
+### 
+POST http://localhost:5284/blogs
+Content-Type: application/json
+X-Api-Key: thisIsABadPassword
+
+{
+    "title": "my title",
+    "body": "my body"
+}
