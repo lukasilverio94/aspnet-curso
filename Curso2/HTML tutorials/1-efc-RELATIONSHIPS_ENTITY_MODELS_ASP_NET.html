@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creating Entity Models in Entity Framework Core</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5em;
+            color: #333;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 1em;
+            overflow-x: auto;
+            border-radius: 4px;
+            border-left: 4px solid #007acc;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+        .skip-link:focus {
+            position: static;
+            width: auto;
+            height: auto;
+            margin: 10px;
+            padding: 10px;
+            background: #fff;
+            border: 2px solid #000;
+        }
+        h1 {
+            color: #007acc;
+            border-bottom: 3px solid #007acc;
+            padding-bottom: 0.3em;
+        }
+        h2 {
+            color: #005a9c;
+            margin-top: 1.5em;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 0.3em;
+        }
+        h3 {
+            color: #333;
+            margin-top: 1.2em;
+        }
+        .note {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        .tip {
+            background-color: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        .concept {
+            background-color: #f3e5f5;
+            border-left: 4px solid #9c27b0;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        dl {
+            background-color: #f9f9f9;
+            padding: 1em;
+            border-radius: 4px;
+        }
+        dt {
+            font-weight: bold;
+            color: #007acc;
+            margin-top: 0.5em;
+        }
+        dd {
+            margin-left: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        .relationship-diagram {
+            background-color: #fafafa;
+            border: 2px solid #e0e0e0;
+            padding: 1em;
+            margin: 1em 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <header role="banner">
+        <h1>Creating Well-Structured Entity Models in Entity Framework Core</h1>
+    </header>
+
+    <main id="main-content" role="main">
+        <section aria-labelledby="introduction">
+            <h2 id="introduction">Introduction</h2>
+            <p>Creating well-structured entity models in Entity Framework Core is like building the foundation of a house—get it right from the start and everything else becomes easier. This tutorial demonstrates how to create entity classes, configure relationships, and implement validation that creates a solid foundation for your data layer.</p>
+            
+            <div class="concept">
+                <strong>Core Concept:</strong> This demonstration builds a complete e-commerce domain model with entities for Customer, Order, Product, and Category, showcasing both simple and complex relationship configurations using data annotations and Fluent API.
+            </div>
+        </section>
+
+        <section aria-labelledby="learning-objectives">
+            <h2 id="learning-objectives">Learning Objectives</h2>
+            <ul>
+                <li>Create entity classes with proper naming conventions</li>
+                <li>Apply data annotations for validation and configuration</li>
+                <li>Configure one-to-many relationships</li>
+                <li>Implement many-to-many relationships</li>
+                <li>Use Fluent API for advanced relationship configuration</li>
+                <li>Configure cascade delete behavior</li>
+                <li>Test entity models with migrations and sample data</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="customer-entity">
+            <h2 id="customer-entity">Creating the Customer Entity</h2>
+            <p>The Customer entity serves as the foundation of our e-commerce model, demonstrating basic entity structure, data annotations, and navigation properties.</p>
+
+            <h3>Customer.cs</h3>
+            <pre><code class="language-csharp">using System.ComponentModel.DataAnnotations;
+
+namespace YourNamespace.Models
+{
+    public class Customer
+    {
+        public int Id { get; set; }
+
+        [Required(ErrorMessage = "First name is required")]
+        [MaxLength(50)]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Last name is required")]
+        [MaxLength(50)]
+        public string LastName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address")]
+        [MaxLength(100)]
+        public string Email { get; set; } = string.Empty;
+
+        [MaxLength(15)]
+        public string? Phone { get; set; }
+
+        // Navigation property - one-to-many relationship
+        public ICollection&lt;Order&gt; Orders { get; set; } = new List&lt;Order&gt;();
+    }
+}</code></pre>
+
+            <h3>Data Annotations Explained</h3>
+            <dl>
+                <dt>[Required]</dt>
+                <dd>Ensures that fields cannot be null. Provides a custom error message when validation fails</dd>
+
+                <dt>[MaxLength]</dt>
+                <dd>Sets database column length limits, preventing data truncation and ensuring consistent storage requirements</dd>
+
+                <dt>[EmailAddress]</dt>
+                <dd>Provides format validation to ensure the value is a valid email address</dd>
+
+                <dt>Navigation Property (Orders)</dt>
+                <dd>Establishes a one-to-many relationship, allowing access to all orders for a customer through the object model. Initialized to an empty list to avoid null reference issues</dd>
+            </dl>
+        </section>
+
+        <section aria-labelledby="order-entity">
+            <h2 id="order-entity">Creating the Order Entity</h2>
+            <p>The Order entity demonstrates foreign key configuration and relationships back to the Customer entity.</p>
+
+            <h3>Order.cs</h3>
+            <pre><code class="language-csharp">using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace YourNamespace.Models
+{
+    public class Order
+    {
+        public int Id { get; set; }
+
+        [Required]
+        public DateTime OrderDate { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal TotalAmount { get; set; }
+
+        [MaxLength(20)]
+        public string Status { get; set; } = "Pending";
+
+        // Foreign key
+        public int CustomerId { get; set; }
+
+        // Navigation property - many-to-one relationship
+        public Customer Customer { get; set; } = null!;
+
+        // Navigation property - one-to-many relationship
+        public ICollection&lt;OrderItem&gt; OrderItems { get; set; } = new List&lt;OrderItem&gt;();
+    }
+}</code></pre>
+
+            <h3>Key Components</h3>
+            <dl>
+                <dt>Scalar Properties</dt>
+                <dd>Properties like Id, OrderDate, TotalAmount, and Status store actual data values</dd>
+
+                <dt>CustomerId (Foreign Key)</dt>
+                <dd>Serves as the foreign key property that references the related Customer entity</dd>
+
+                <dt>Customer (Navigation Property)</dt>
+                <dd>Provides object-oriented access to the related Customer entity</dd>
+
+                <dt>[Column] Attribute</dt>
+                <dd>Specifies exact decimal precision for monetary values (18 digits total, 2 decimal places), ensuring accurate financial calculations</dd>
+            </dl>
+
+            <div class="note">
+                <strong>Design Pattern:</strong> The Order entity includes both the foreign key property (CustomerId) and the navigation property (Customer), following Entity Framework Core best practices for explicit relationship configuration.
+            </div>
+        </section>
+
+        <section aria-labelledby="product-entity">
+            <h2 id="product-entity">Creating the Product Entity</h2>
+            <p>The Product entity demonstrates how one entity can participate in multiple relationships—with both Categories (many-to-many) and OrderItems (one-to-many).</p>
+
+            <h3>Product.cs</h3>
+            <pre><code class="language-csharp">using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace YourNamespace.Models
+{
+    public class Product
+    {
+        public int Id { get; set; }
+
+        [Required(ErrorMessage = "Product name is required")]
+        [MaxLength(100)]
+        public string Name { get; set; } = string.Empty;
+
+        [MaxLength(500)]
+        public string? Description { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal Price { get; set; }
+
+        public int StockQuantity { get; set; }
+
+        // Navigation properties
+        // Many-to-many relationship with Category
+        public ICollection&lt;Category&gt; Categories { get; set; } = new List&lt;Category&gt;();
+
+        // One-to-many relationship with OrderItem
+        public ICollection&lt;OrderItem&gt; OrderItems { get; set; } = new List&lt;OrderItem&gt;();
+    }
+}</code></pre>
+
+            <h3>Multiple Relationship Participation</h3>
+            <p>The Product entity showcases Entity Framework Core's ability to handle multiple relationships simultaneously:</p>
+            <ul>
+                <li><strong>Categories:</strong> Many-to-many relationship allowing products to belong to multiple categories</li>
+                <li><strong>OrderItems:</strong> One-to-many relationship tracking which orders include this product</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="category-entity">
+            <h2 id="category-entity">Creating the Category Entity</h2>
+            <p>The Category entity completes the many-to-many relationship with Product, establishing the relationship from both directions.</p>
+
+            <h3>Category.cs</h3>
+            <pre><code class="language-csharp">using System.ComponentModel.DataAnnotations;
+
+namespace YourNamespace.Models
+{
+    public class Category
+    {
+        public int Id { get; set; }
+
+        [Required(ErrorMessage = "Category name is required")]
+        [MaxLength(50)]
+        public string Name { get; set; } = string.Empty;
+
+        [MaxLength(200)]
+        public string? Description { get; set; }
+
+        // Navigation property - many-to-many relationship
+        public ICollection&lt;Product&gt; Products { get; set; } = new List&lt;Product&gt;();
+    }
+}</code></pre>
+
+            <div class="concept">
+                <strong>Many-to-Many Relationships:</strong> The Category entity mirrors the Product entity's navigation property. When both entities include collection navigation properties pointing to each other, Entity Framework Core recognizes this as a many-to-many relationship and automatically creates a join table.
+            </div>
+        </section>
+
+        <section aria-labelledby="orderitem-entity">
+            <h2 id="orderitem-entity">Creating the OrderItem Entity (Linking Entity)</h2>
+            <p>OrderItem serves as a linking entity that contains both foreign keys and additional properties specific to the relationship between Order and Product.</p>
+
+            <h3>OrderItem.cs</h3>
+            <pre><code class="language-csharp">using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace YourNamespace.Models
+{
+    public class OrderItem
+    {
+        public int Id { get; set; }
+
+        [Required]
+        public int Quantity { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal UnitPrice { get; set; }
+
+        // Foreign keys
+        public int OrderId { get; set; }
+        public int ProductId { get; set; }
+
+        // Navigation properties
+        public Order Order { get; set; } = null!;
+        public Product Product { get; set; } = null!;
+    }
+}</code></pre>
+
+            <h3>Linking Entity Characteristics</h3>
+            <ul>
+                <li><strong>Dual Foreign Keys:</strong> Contains OrderId and ProductId to reference both related entities</li>
+                <li><strong>Relationship-Specific Data:</strong> Includes Quantity and UnitPrice properties that are specific to this particular order-product combination</li>
+                <li><strong>Dual Navigation Properties:</strong> Provides object-oriented access to both the Order and Product entities</li>
+            </ul>
+
+            <div class="tip">
+                <strong>When to Use Linking Entities:</strong> Use explicit linking entities (like OrderItem) instead of automatic join tables when you need to store additional data about the relationship itself. Automatic join tables only store the foreign keys, while linking entities can include extra properties like Quantity and UnitPrice.
+            </div>
+        </section>
+
+        <section aria-labelledby="dbcontext-configuration">
+            <h2 id="dbcontext-configuration">Configuring Relationships with Fluent API</h2>
+            <p>While data annotations provide basic configuration, Fluent API offers more control and keeps configuration logic centralized in the DbContext class.</p>
+
+            <h3>ApplicationDbContext.cs</h3>
+            <pre><code class="language-csharp">using Microsoft.EntityFrameworkCore;
+using YourNamespace.Models;
+
+namespace YourNamespace.Data
+{
+    public class ApplicationDbContext : DbContext
+    {
+        public ApplicationDbContext(DbContextOptions&lt;ApplicationDbContext&gt; options)
+            : base(options)
+        {
+        }
+
+        public DbSet&lt;Customer&gt; Customers { get; set; }
+        public DbSet&lt;Order&gt; Orders { get; set; }
+        public DbSet&lt;Product&gt; Products { get; set; }
+        public DbSet&lt;Category&gt; Categories { get; set; }
+        public DbSet&lt;OrderItem&gt; OrderItems { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Configure Customer-Order relationship (one-to-many)
+            modelBuilder.Entity&lt;Order&gt;()
+                .HasOne(o =&gt; o.Customer)
+                .WithMany(c =&gt; c.Orders)
+                .HasForeignKey(o =&gt; o.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure Product-Category relationship (many-to-many)
+            modelBuilder.Entity&lt;Product&gt;()
+                .HasMany(p =&gt; p.Categories)
+                .WithMany(c =&gt; c.Products);
+
+            // Configure Order-OrderItem relationship (one-to-many)
+            modelBuilder.Entity&lt;OrderItem&gt;()
+                .HasOne(oi =&gt; oi.Order)
+                .WithMany(o =&gt; o.OrderItems)
+                .HasForeignKey(oi =&gt; oi.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure Product-OrderItem relationship (one-to-many)
+            modelBuilder.Entity&lt;OrderItem&gt;()
+                .HasOne(oi =&gt; oi.Product)
+                .WithMany(p =&gt; p.OrderItems)
+                .HasForeignKey(oi =&gt; oi.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
+    }
+}</code></pre>
+
+            <h3>Fluent API Configuration Breakdown</h3>
+
+            <h4>Customer-Order Relationship</h4>
+            <pre><code class="language-csharp">modelBuilder.Entity&lt;Order&gt;()
+    .HasOne(o =&gt; o.Customer)           // Each order has one customer
+    .WithMany(c =&gt; c.Orders)            // Each customer has many orders
+    .HasForeignKey(o =&gt; o.CustomerId)   // Foreign key specification
+    .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete</code></pre>
+
+            <p>This configuration explicitly defines the one-to-many relationship between Customer and Order. The <code>OnDelete(DeleteBehavior.Restrict)</code> prevents customers from being deleted if they have orders.</p>
+
+            <h4>Product-Category Relationship</h4>
+            <pre><code class="language-csharp">modelBuilder.Entity&lt;Product&gt;()
+    .HasMany(p =&gt; p.Categories)    // Each product has many categories
+    .WithMany(c =&gt; c.Products);     // Each category has many products</code></pre>
+
+            <p>This simple configuration establishes the many-to-many relationship. Entity Framework Core 5.0 and later automatically creates the necessary join table for this relationship.</p>
+
+            <h4>Order-OrderItem Relationship with Cascade Delete</h4>
+            <pre><code class="language-csharp">modelBuilder.Entity&lt;OrderItem&gt;()
+    .HasOne(oi =&gt; oi.Order)
+    .WithMany(o =&gt; o.OrderItems)
+    .HasForeignKey(oi =&gt; oi.OrderId)
+    .OnDelete(DeleteBehavior.Cascade);  // Cascade delete enabled</code></pre>
+
+            <p>The <code>OnDelete(DeleteBehavior.Cascade)</code> ensures that when an order is deleted, all related order items are automatically removed, preventing orphaned records in the database.</p>
+
+            <div class="note">
+                <strong>Fluent API Advantages:</strong> Fluent API provides more configuration options than data annotations, keeps configuration centralized, and allows configuration of features that don't have data annotation equivalents (like cascade delete behavior).
+            </div>
+        </section>
+
+        <section aria-labelledby="delete-behavior">
+            <h2 id="delete-behavior">Understanding Delete Behaviors</h2>
+            
+            <dl>
+                <dt>DeleteBehavior.Cascade</dt>
+                <dd>When a parent entity is deleted, all related child entities are automatically deleted. Used for OrderItem to ensure no orphaned items remain when an order is deleted</dd>
+
+                <dt>DeleteBehavior.Restrict</dt>
+                <dd>Prevents deletion of a parent entity if related child entities exist. Used for Customer-Order relationship to prevent accidental loss of order history</dd>
+
+                <dt>DeleteBehavior.SetNull</dt>
+                <dd>Sets foreign key properties to null when the parent entity is deleted. Only works with nullable foreign keys</dd>
+
+                <dt>DeleteBehavior.NoAction</dt>
+                <dd>No automatic action is taken. The database handles the constraint, which may result in an error if related entities exist</dd>
+            </dl>
+
+            <div class="tip">
+                <strong>Best Practice:</strong> Choose cascade delete carefully based on business requirements. Use Cascade for true dependent entities (like OrderItems that have no meaning without their Order), and use Restrict for entities that should be preserved independently (like Customers who have order history).
+            </div>
+        </section>
+
+        <section aria-labelledby="migration-testing">
+            <h2 id="migration-testing">Testing Model Configuration with Migrations</h2>
+            <p>Creating a migration validates your entity model configuration and shows how Entity Framework Core interprets your design.</p>
+
+            <h3>Create Initial Migration</h3>
+            <pre><code class="language-bash">dotnet ef migrations add InitialCreate</code></pre>
+
+            <div class="note">
+                <strong>Important:</strong> The migration name "InitialCreate" is case-sensitive.
+            </div>
+
+            <p>The generated migration file appears in the Migrations folder and reveals how Entity Framework Core interpreted your model configuration, including:</p>
+            <ul>
+                <li>Table structures with all columns and data types</li>
+                <li>Primary key definitions</li>
+                <li>Foreign key relationships and constraints</li>
+                <li>Indexes for performance optimization</li>
+                <li>Delete behavior configurations</li>
+            </ul>
+
+            <h3>Review Generated Migration</h3>
+            <p>The migration file shows the CreateTable operations for each entity, including:</p>
+            <ul>
+                <li>Column definitions matching your property types and annotations</li>
+                <li>Foreign key constraints with proper cascade/restrict behavior</li>
+                <li>Join tables for many-to-many relationships (ProductCategory)</li>
+                <li>Index creation for foreign keys to improve query performance</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="data-seeding">
+            <h2 id="data-seeding">Testing Models with Sample Data</h2>
+            <p>Creating a data seeder verifies that navigation properties and relationships work correctly in practice.</p>
+
+            <h3>DataSeeder.cs</h3>
+            <pre><code class="language-csharp">using YourNamespace.Data;
+using YourNamespace.Models;
+
+namespace YourNamespace.Data
+{
+    public class DataSeeder
+    {
+        public static void SeedData(ApplicationDbContext context)
+        {
+            // Clear existing data
+            context.Database.EnsureCreated();
+
+            if (context.Customers.Any())
+            {
+                return; // Database already seeded
+            }
+
+            // Create customers
+            var customer1 = new Customer
+            {
+                FirstName = "John",
+                LastName = "Doe",
+                Email = "john.doe@example.com",
+                Phone = "555-0100"
+            };
+
+            var customer2 = new Customer
+            {
+                FirstName = "Jane",
+                LastName = "Smith",
+                Email = "jane.smith@example.com",
+                Phone = "555-0200"
+            };
+
+            // Create categories
+            var electronics = new Category
+            {
+                Name = "Electronics",
+                Description = "Electronic devices and accessories"
+            };
+
+            var books = new Category
+            {
+                Name = "Books",
+                Description = "Physical and digital books"
+            };
+
+            // Create products
+            var laptop = new Product
+            {
+                Name = "Laptop",
+                Description = "High-performance laptop",
+                Price = 999.99m,
+                StockQuantity = 50,
+                Categories = new List&lt;Category&gt; { electronics }
+            };
+
+            var novel = new Product
+            {
+                Name = "Programming Guide",
+                Description = "Comprehensive programming guide",
+                Price = 49.99m,
+                StockQuantity = 100,
+                Categories = new List&lt;Category&gt; { books }
+            };
+
+            // Create orders
+            var order1 = new Order
+            {
+                OrderDate = DateTime.Now,
+                Status = "Processing",
+                Customer = customer1,
+                OrderItems = new List&lt;OrderItem&gt;
+                {
+                    new OrderItem
+                    {
+                        Product = laptop,
+                        Quantity = 1,
+                        UnitPrice = laptop.Price
+                    }
+                }
+            };
+
+            order1.TotalAmount = order1.OrderItems.Sum(oi =&gt; oi.Quantity * oi.UnitPrice);
+
+            // Add to context
+            context.Customers.AddRange(customer1, customer2);
+            context.Categories.AddRange(electronics, books);
+            context.Products.AddRange(laptop, novel);
+            context.Orders.Add(order1);
+
+            // Save changes
+            context.SaveChanges();
+        }
+    }
+}</code></pre>
+
+            <h3>What the Seeder Demonstrates</h3>
+            <ul>
+                <li><strong>Navigation Property Assignment:</strong> Shows how to establish relationships by assigning to navigation properties (e.g., <code>Customer = customer1</code>)</li>
+                <li><strong>Collection Initialization:</strong> Demonstrates initializing collection navigation properties with related entities</li>
+                <li><strong>Relationship Traversal:</strong> Calculates TotalAmount by accessing OrderItems through navigation properties</li>
+                <li><strong>Many-to-Many Setup:</strong> Assigns products to categories using collection navigation properties</li>
+            </ul>
+
+            <div class="tip">
+                <strong>Testing Strategy:</strong> After seeding data, query the database to verify relationships are correctly established. Try accessing navigation properties to confirm Entity Framework Core properly loads related entities.
+            </div>
+        </section>
+
+        <section aria-labelledby="relationship-summary">
+            <h2 id="relationship-summary">Entity Relationship Summary</h2>
+            
+            <div class="relationship-diagram">
+                <h3>Complete E-Commerce Model Relationships</h3>
+                <ul>
+                    <li><strong>Customer → Orders:</strong> One-to-Many (One customer can have many orders)</li>
+                    <li><strong>Order → OrderItems:</strong> One-to-Many (One order contains many order items)</li>
+                    <li><strong>Product → OrderItems:</strong> One-to-Many (One product can appear in many order items)</li>
+                    <li><strong>Product ↔ Categories:</strong> Many-to-Many (Products belong to multiple categories; categories contain multiple products)</li>
+                </ul>
+            </div>
+        </section>
+
+        <section aria-labelledby="best-practices">
+            <h2 id="best-practices">Entity Modeling Best Practices</h2>
+            
+            <h3>Entity Design Principles</h3>
+            <ul>
+                <li>Use data annotations for simple validation and display requirements</li>
+                <li>Use Fluent API for complex configurations and relationship definitions</li>
+                <li>Initialize collection navigation properties to empty collections to avoid null references</li>
+                <li>Include both foreign key properties and navigation properties for clarity</li>
+                <li>Use appropriate delete behaviors based on business requirements</li>
+                <li>Apply [Column] attributes for precise decimal types in financial calculations</li>
+            </ul>
+
+            <h3>Naming Conventions</h3>
+            <ul>
+                <li>Entity classes: Singular nouns (Customer, Order, Product)</li>
+                <li>DbSet properties: Plural nouns (Customers, Orders, Products)</li>
+                <li>Foreign key properties: EntityNameId pattern (CustomerId, ProductId)</li>
+                <li>Navigation properties: Use entity type name (Customer, Order) or collection type (Orders, Products)</li>
+            </ul>
+
+            <h3>Validation Strategy</h3>
+            <ul>
+                <li>Use [Required] for mandatory fields</li>
+                <li>Use [MaxLength] to prevent data truncation</li>
+                <li>Use [EmailAddress] for email format validation</li>
+                <li>Provide meaningful error messages in validation attributes</li>
+                <li>Consider [Range] for numeric constraints</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="key-concepts">
+            <h2 id="key-concepts">Key Concepts Summary</h2>
+            
+            <dl>
+                <dt>Entity Class</dt>
+                <dd>A C# class that represents a table in the database. Properties map to columns</dd>
+
+                <dt>Navigation Property</dt>
+                <dd>A property that references related entities, enabling object-oriented access to relationships</dd>
+
+                <dt>Foreign Key</dt>
+                <dd>A property that stores the primary key value of a related entity, establishing the database relationship</dd>
+
+                <dt>Data Annotations</dt>
+                <dd>Attributes applied to entity properties that provide validation rules and database configuration</dd>
+
+                <dt>Fluent API</dt>
+                <dd>Code-based configuration approach using method chaining in the OnModelCreating method, providing more options than data annotations</dd>
+
+                <dt>One-to-Many Relationship</dt>
+                <dd>A relationship where one entity instance relates to multiple instances of another entity (e.g., one Customer has many Orders)</dd>
+
+                <dt>Many-to-Many Relationship</dt>
+                <dd>A relationship where multiple instances of one entity relate to multiple instances of another entity (e.g., Products and Categories)</dd>
+
+                <dt>Linking Entity</dt>
+                <dd>An entity that explicitly represents a many-to-many relationship and contains additional properties beyond the foreign keys</dd>
+
+                <dt>Cascade Delete</dt>
+                <dd>Automatic deletion of related entities when the parent entity is deleted</dd>
+            </dl>
+        </section>
+
+        <section aria-labelledby="conclusion">
+            <h2 id="conclusion">Conclusion</h2>
+            <p>You've now seen how to create a complex domain model using Entity Framework Core, from basic entity classes with data annotations to sophisticated relationship configurations using Fluent API. The combination of proper entity design, relationship configuration, and validation creates a robust foundation for your data layer that accurately represents your business domain while maintaining data integrity and performance.</p>
+            
+            <p>This e-commerce model demonstrates:</p>
+            <ul>
+                <li>Effective use of data annotations for validation and simple configuration</li>
+                <li>Fluent API for advanced relationship and behavior configuration</li>
+                <li>Proper handling of one-to-many and many-to-many relationships</li>
+                <li>Strategic use of cascade delete behaviors to maintain referential integrity</li>
+                <li>Testing and validation through migrations and data seeding</li>
+            </ul>
+            
+            <p>These principles and patterns apply to any domain model you need to build, providing a template for creating maintainable, performant data layers in your ASP.NET Core applications.</p>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <p>Entity Framework Core Tutorial - Creating Well-Structured Entity Models with Relationships and Validation</p>
+    </footer>
+</body>
+</html>

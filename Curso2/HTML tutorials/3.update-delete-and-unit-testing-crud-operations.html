@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Implementing Update, Delete, and Unit Testing for CRUD Operations</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5em;
+            color: #333;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 1em;
+            overflow-x: auto;
+            border-radius: 4px;
+            border-left: 4px solid #0066cc;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+        .skip-link:focus {
+            position: static;
+            width: auto;
+            height: auto;
+            margin: 10px;
+            padding: 10px;
+            background: #fff;
+            border: 2px solid #000;
+        }
+        .note {
+            background-color: #e7f3ff;
+            border-left: 4px solid #0066cc;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        .tip {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        .important {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        h2 {
+            color: #0066cc;
+            margin-top: 1.5em;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 0.3em;
+        }
+        h3 {
+            color: #444;
+            margin-top: 1.2em;
+        }
+        dl {
+            background-color: #fafafa;
+            padding: 1em;
+            border-radius: 4px;
+        }
+        dt {
+            font-weight: bold;
+            color: #0066cc;
+            margin-top: 0.5em;
+        }
+        dd {
+            margin-left: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        .key-principles {
+            background-color: #f8f9fa;
+            border: 2px solid #0066cc;
+            padding: 1.5em;
+            border-radius: 6px;
+            margin: 1.5em 0;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <header role="banner">
+        <h1>Implementing Update, Delete, and Unit Testing for CRUD Operations</h1>
+    </header>
+
+    <main id="main-content" role="main">
+        <section aria-labelledby="introduction">
+            <h2 id="introduction">Overview</h2>
+            <p>This tutorial completes the CRUD implementation by adding update and delete operations, then demonstrates how to implement comprehensive unit testing using xUnit and Moq. You'll learn how to validate business rules, implement proper testing patterns, and verify service logic in isolation from the database.</p>
+        </section>
+
+        <section aria-labelledby="update-operation">
+            <h2 id="update-operation">Implementing the Update Operation</h2>
+            
+            <h3>Update Product Method</h3>
+            <pre><code class="language-csharp">public async Task&lt;Product&gt; UpdateProductAsync(Product product)
+{
+    // Validate product ID
+    if (product.Id <= 0)
+    {
+        throw new ArgumentException("Product ID must be positive", nameof(product.Id));
+    }
+
+    // Validate product name
+    if (string.IsNullOrWhiteSpace(product.Name))
+    {
+        throw new ArgumentException("Product name cannot be empty", nameof(product.Name));
+    }
+
+    // Validate product price
+    if (product.Price <= 0)
+    {
+        throw new ArgumentException("Product price must be positive", nameof(product.Price));
+    }
+
+    // Call repository to update the product
+    return await _repository.UpdateAsync(product);
+}</code></pre>
+
+            <h3>Update Method Validation Breakdown</h3>
+            
+            <h4>ID Validation</h4>
+            <p>The update method includes an additional validation check not present in the create method: ensuring the product ID is valid. This check verifies that the ID is a positive integer, confirming we're updating an existing product record rather than accidentally creating a new one.</p>
+
+            <h4>Name and Price Validation</h4>
+            <p>The update method includes the same validation as the create method for name and price. This ensures data consistency and business rule enforcement regardless of whether you're creating or updating a product.</p>
+
+            <h4>Repository Call</h4>
+            <p>After all validations pass, the method calls the repository's <code>UpdateAsync</code> method to persist the changes to the database.</p>
+
+            <div class="note">
+                <p><strong>Validation Consistency:</strong> Update operations require the same business rule validation as create operations, plus additional checks to ensure you're modifying an existing record. This consistency prevents invalid data from entering your system through any entry point.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="delete-operation">
+            <h2 id="delete-operation">Implementing the Delete Operation</h2>
+            
+            <h3>Delete Product Method</h3>
+            <pre><code class="language-csharp">public async Task DeleteProductAsync(int id)
+{
+    // Validate ID
+    if (id <= 0)
+    {
+        throw new ArgumentException("Product ID must be positive", nameof(id));
+    }
+
+    // Call repository to delete the product
+    await _repository.DeleteAsync(id);
+}</code></pre>
+
+            <h3>Delete Method Explained</h3>
+            <p>The delete method validates the ID parameter and then calls the repository to remove the product. While this implementation is straightforward, production applications often require additional business logic.</p>
+
+            <h3>Production Considerations for Delete Operations</h3>
+            <p>In real-world applications, you might add several enhancements to the delete operation:</p>
+            
+            <h4>Existence Verification</h4>
+            <p>Check if the product exists before attempting deletion, providing meaningful error messages if the product is not found.</p>
+
+            <h4>Referential Integrity Checks</h4>
+            <p>Verify if the product can be safely deleted by checking for related records such as orders, reviews, or inventory transactions. Prevent deletion of products that are referenced by other entities.</p>
+
+            <h4>Soft Delete Implementation</h4>
+            <p>Instead of permanently removing records, implement soft delete functionality by marking products as inactive or deleted. This preserves historical data and allows for potential recovery.</p>
+
+            <h4>Cascading Operations</h4>
+            <p>Handle related data appropriately, such as removing associated images, clearing cache entries, or triggering notifications to dependent systems.</p>
+
+            <div class="important">
+                <p><strong>Data Integrity:</strong> Always consider the broader implications of delete operations. In many business scenarios, soft deletes are preferred over hard deletes to maintain audit trails and historical records.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="unit-testing-setup">
+            <h2 id="unit-testing-setup">Setting Up Unit Testing</h2>
+            
+            <h3>Step 1: Create the Tests Folder</h3>
+            <p>Organize your tests by creating a dedicated folder:</p>
+            <ol>
+                <li>Right-click on the project in the explorer</li>
+                <li>Select "New Folder"</li>
+                <li>Type <code>Tests</code> as the folder name</li>
+            </ol>
+
+            <h3>Step 2: Create the Test File</h3>
+            <p>In the Tests folder, create a new file named <code>ProductServiceTests.cs</code>:</p>
+            <ol>
+                <li>Right-click the Tests folder</li>
+                <li>Select "New File"</li>
+                <li>Type <code>ProductServiceTests.cs</code> as the filename</li>
+            </ol>
+
+            <h3>Step 3: Add Required Using Statements</h3>
+            <pre><code class="language-csharp">using Xunit;
+using Moq;
+using YourNamespace.Models;
+using YourNamespace.Repositories;
+using YourNamespace.Services;</code></pre>
+
+            <h3>Using Statements Explained</h3>
+            <dl>
+                <dt>Xunit</dt>
+                <dd>Provides the testing framework with attributes like [Fact] and [Theory], along with assertion methods</dd>
+                
+                <dt>Moq</dt>
+                <dd>Enables creation of mock objects for dependencies, allowing you to test in isolation without real implementations</dd>
+                
+                <dt>Application Namespaces</dt>
+                <dd>Import your Models, Repositories, and Services to access the classes being tested</dd>
+            </dl>
+        </section>
+
+        <section aria-labelledby="test-class-structure">
+            <h2 id="test-class-structure">Creating the Test Class Structure</h2>
+            
+            <h3>Test Class with Constructor</h3>
+            <pre><code class="language-csharp">public class ProductServiceTests
+{
+    private readonly Mock&lt;IProductRepository&gt; _mockRepository;
+    private readonly ProductService _productService;
+
+    public ProductServiceTests()
+    {
+        _mockRepository = new Mock&lt;IProductRepository&gt;();
+        _productService = new ProductService(_mockRepository.Object);
+    }
+
+    // Test methods will be added here
+}</code></pre>
+
+            <h3>Test Class Components Explained</h3>
+            
+            <h4>Mock Repository Field</h4>
+            <p>The <code>_mockRepository</code> field creates a mock implementation of <code>IProductRepository</code>. This mock allows you to control what the repository returns and verify that it's called correctly, without requiring a real database.</p>
+
+            <h4>Product Service Field</h4>
+            <p>The <code>_productService</code> field holds the instance of the service being tested. It receives the mock repository through dependency injection.</p>
+
+            <h4>Constructor Setup</h4>
+            <p>The constructor instantiates the mock repository and product service. This setup ensures that each test gets a fresh, isolated environment, preventing tests from affecting each other.</p>
+
+            <div class="tip">
+                <p><strong>Test Isolation:</strong> xUnit creates a new instance of the test class for each test method, ensuring complete isolation. The constructor runs before each test, providing a clean slate every time.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="create-test">
+            <h2 id="create-test">Implementing the Create Product Test</h2>
+            
+            <h3>Complete Test Method</h3>
+            <pre><code class="language-csharp">[Fact]
+public async Task CreateProductAsync_ValidProduct_ReturnsCreatedProduct()
+{
+    // Arrange
+    var testProduct = new Product
+    {
+        Id = 1,
+        Name = "Test Product",
+        Price = 99.99m,
+        Description = "Test Description"
+    };
+
+    _mockRepository
+        .Setup(repo => repo.CreateAsync(It.IsAny&lt;Product&gt;()))
+        .ReturnsAsync(testProduct);
+
+    // Act
+    var result = await _productService.CreateProductAsync(testProduct);
+
+    // Assert
+    Assert.NotNull(result);
+    Assert.Equal("Test Product", result.Name);
+    _mockRepository.Verify(
+        repo => repo.CreateAsync(It.IsAny&lt;Product&gt;()), 
+        Times.Once
+    );
+}</code></pre>
+
+            <h3>Understanding the Arrange-Act-Assert Pattern</h3>
+            
+            <h4>Arrange Section</h4>
+            <p>The Arrange section sets up the test environment:</p>
+            <ul>
+                <li>Creates a test product with sample data</li>
+                <li>Configures the mock repository to return the test product when <code>CreateAsync</code> is called</li>
+                <li>Uses <code>It.IsAny&lt;Product&gt;()</code> to accept any product parameter</li>
+            </ul>
+
+            <h4>Act Section</h4>
+            <p>The Act section executes the code being tested by calling the service method with the test product.</p>
+
+            <h4>Assert Section</h4>
+            <p>The Assert section verifies the results:</p>
+            <ul>
+                <li><code>Assert.NotNull(result)</code>: Confirms the method returned a result</li>
+                <li><code>Assert.Equal("Test Product", result.Name)</code>: Verifies the returned product has the correct name</li>
+                <li><code>_mockRepository.Verify(..., Times.Once)</code>: Confirms the repository method was called exactly one time</li>
+            </ul>
+
+            <div class="note">
+                <p><strong>Power of Mocking:</strong> This test demonstrates the value of dependency injection and mocking. You're testing the service logic in complete isolation from the actual database, making tests fast, reliable, and independent of external dependencies.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="test-benefits">
+            <h2 id="test-benefits">Benefits of Comprehensive Unit Testing</h2>
+            
+            <dl>
+                <dt>Fast Execution</dt>
+                <dd>Tests run in milliseconds without database connections, allowing you to run hundreds or thousands of tests quickly during development.</dd>
+                
+                <dt>Isolation and Reliability</dt>
+                <dd>Tests don't depend on external systems like databases or APIs. They produce consistent results regardless of environment, preventing flaky tests.</dd>
+                
+                <dt>Early Bug Detection</dt>
+                <dd>Unit tests catch logic errors immediately during development, before code reaches integration testing or production.</dd>
+                
+                <dt>Documentation</dt>
+                <dd>Well-written tests serve as living documentation showing how the code should behave and how to use the APIs.</dd>
+                
+                <dt>Refactoring Confidence</dt>
+                <dd>Comprehensive test coverage allows you to refactor code safely, knowing that tests will catch any behavioral changes.</dd>
+                
+                <dt>Design Feedback</dt>
+                <dd>Difficulty writing tests often indicates design problems. If a class is hard to test, it's likely doing too much or has tight coupling.</dd>
+            </dl>
+        </section>
+
+        <section aria-labelledby="additional-tests">
+            <h2 id="additional-tests">Additional Tests to Implement</h2>
+            
+            <h3>Validation Tests</h3>
+            <p>Test that validation logic works correctly by attempting to create or update products with invalid data:</p>
+            <ul>
+                <li>Test creating a product with an empty name</li>
+                <li>Test creating a product with zero or negative price</li>
+                <li>Test updating a product with an invalid ID</li>
+                <li>Verify that appropriate exceptions are thrown with correct messages</li>
+            </ul>
+
+            <h3>Read Operation Tests</h3>
+            <p>Test the retrieval methods to ensure they return correct data:</p>
+            <ul>
+                <li>Test <code>GetProductAsync</code> with valid and invalid IDs</li>
+                <li>Test <code>GetAllProductsAsync</code> returns all products</li>
+                <li>Test behavior when products don't exist (null handling)</li>
+            </ul>
+
+            <h3>Update and Delete Tests</h3>
+            <p>Verify update and delete operations work as expected:</p>
+            <ul>
+                <li>Test successful product updates with valid data</li>
+                <li>Test update validation failures</li>
+                <li>Test successful product deletion</li>
+                <li>Test deletion with invalid IDs</li>
+            </ul>
+
+            <h3>Repository Interaction Tests</h3>
+            <p>Verify the service calls repository methods correctly:</p>
+            <ul>
+                <li>Confirm methods are called with expected parameters</li>
+                <li>Verify methods are called the correct number of times</li>
+                <li>Test that service passes data to repository unchanged (when appropriate)</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="testing-best-practices">
+            <h2 id="testing-best-practices">Unit Testing Best Practices</h2>
+            
+            <h3>Test Naming Conventions</h3>
+            <p>Use descriptive test names that follow the pattern: <code>MethodName_Scenario_ExpectedResult</code>. For example: <code>CreateProductAsync_ValidProduct_ReturnsCreatedProduct</code>.</p>
+
+            <h3>One Assertion per Test Concept</h3>
+            <p>While multiple Assert statements are acceptable, each test should verify one logical concept. Don't try to test create, update, and delete in a single test method.</p>
+
+            <h3>Arrange-Act-Assert Pattern</h3>
+            <p>Always structure tests with clear Arrange, Act, and Assert sections. This makes tests easier to read and maintain.</p>
+
+            <h3>Use Meaningful Test Data</h3>
+            <p>Choose test data that makes tests self-documenting. Use descriptive names like "Test Product" rather than generic values.</p>
+
+            <h3>Test Both Happy and Sad Paths</h3>
+            <p>Write tests for successful scenarios (happy path) and error scenarios (sad path). Verify that your code handles failures gracefully.</p>
+
+            <h3>Mock Verification</h3>
+            <p>Always verify that mocked dependencies are called correctly using <code>Verify()</code> methods. This ensures your service interacts with dependencies as expected.</p>
+        </section>
+
+        <section aria-labelledby="key-principles">
+            <h2 id="key-principles">Key Principles Review</h2>
+            
+            <div class="key-principles">
+                <h3>Remember These Core Principles:</h3>
+                
+                <h4>Use Dependency Injection for Testability</h4>
+                <p>Inject dependencies through constructors rather than creating instances directly. This enables substituting mock implementations during testing and promotes loose coupling.</p>
+
+                <h4>Validate Business Rules in the Service Layer</h4>
+                <p>Keep all business validation logic in the service layer, not in repositories or controllers. This centralizes rules and makes them easier to test and maintain.</p>
+
+                <h4>Keep Repositories Focused on Data Access</h4>
+                <p>Repositories should only handle database operations without business logic. This separation allows you to change data access strategies without affecting business rules.</p>
+
+                <h4>Write Unit Tests that Verify Logic in Isolation</h4>
+                <p>Use mocking to test services independently of databases and external systems. This produces fast, reliable tests that catch logic errors early.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="architecture-foundation">
+            <h2 id="architecture-foundation">Building on a Solid Foundation</h2>
+            
+            <p>The service layer architecture demonstrated in this tutorial provides several critical foundations for scalable applications:</p>
+
+            <h3>Maintainability</h3>
+            <p>Clear separation between layers makes code easier to understand and modify. Changes to business rules only require updating the service layer.</p>
+
+            <h3>Reliability</h3>
+            <p>Comprehensive unit tests catch bugs early and provide confidence when making changes. Each component can be tested independently.</p>
+
+            <h3>Adaptability</h3>
+            <p>The architecture accommodates changing requirements easily. You can swap implementations, add new validation rules, or change data access strategies with minimal impact.</p>
+
+            <h3>Scalability</h3>
+            <p>Asynchronous methods support high concurrency. The architecture naturally extends to distributed systems, caching strategies, and microservices patterns.</p>
+
+            <div class="tip">
+                <p><strong>Production-Ready Foundation:</strong> This architecture isn't just theoretical—it's the same pattern used in enterprise applications handling millions of transactions daily. By following these principles, you're building applications that can grow and adapt as requirements evolve.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="conclusion">
+            <h2 id="conclusion">Conclusion</h2>
+            <p>You've now completed the implementation of CRUD operations using service layer architecture with comprehensive unit testing. This includes:</p>
+            <ul>
+                <li>Implementing update operations with complete validation including ID checks</li>
+                <li>Creating delete operations with considerations for production scenarios</li>
+                <li>Setting up unit testing infrastructure with xUnit and Moq</li>
+                <li>Writing effective tests using the Arrange-Act-Assert pattern</li>
+                <li>Understanding the power of dependency injection and mocking</li>
+                <li>Learning best practices for maintainable, testable code</li>
+            </ul>
+            <p>By separating concerns between repositories and services, adding business validation, and implementing comprehensive unit tests, you're building applications that can scale and adapt to changing requirements. This foundation supports maintainable, reliable software that stands the test of time.</p>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <p>CRUD Operations: Update, Delete, and Unit Testing Tutorial - ASP.NET Core and Entity Framework Core</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Implementing CRUD Operations with Service Layer Architecture</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5em;
+            color: #333;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 1em;
+            overflow-x: auto;
+            border-radius: 4px;
+            border-left: 4px solid #0066cc;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+        .skip-link:focus {
+            position: static;
+            width: auto;
+            height: auto;
+            margin: 10px;
+            padding: 10px;
+            background: #fff;
+            border: 2px solid #000;
+        }
+        .note {
+            background-color: #e7f3ff;
+            border-left: 4px solid #0066cc;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        .tip {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        h2 {
+            color: #0066cc;
+            margin-top: 1.5em;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 0.3em;
+        }
+        h3 {
+            color: #444;
+            margin-top: 1.2em;
+        }
+        dl {
+            background-color: #fafafa;
+            padding: 1em;
+            border-radius: 4px;
+        }
+        dt {
+            font-weight: bold;
+            color: #0066cc;
+            margin-top: 0.5em;
+        }
+        dd {
+            margin-left: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        .folder-structure {
+            background-color: #fafafa;
+            padding: 1em;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <header role="banner">
+        <h1>Implementing CRUD Operations with Service Layer Architecture</h1>
+    </header>
+
+    <main id="main-content" role="main">
+        <section aria-labelledby="introduction">
+            <h2 id="introduction">Overview</h2>
+            <p>Building CRUD (Create, Read, Update, Delete) operations correctly separates hobbyist code from production-ready applications. This tutorial demonstrates how to implement CRUD operations using Service Layer Architecture with Entity Framework Core, following the same patterns used in enterprise applications handling millions of transactions daily.</p>
+            
+            <div class="note">
+                <p><strong>What You'll Learn:</strong> This tutorial covers creating a complete CRUD implementation with proper separation of concerns, including entity models, repository interfaces, service layer architecture, dependency injection, and business validation.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="project-setup">
+            <h2 id="project-setup">Project Structure Setup</h2>
+            
+            <h3>Creating the Folder Structure</h3>
+            <p>Begin with an existing Web API project in Visual Studio Code. Create three key folders to organize your code:</p>
+            
+            <div class="folder-structure">
+                <pre>
+YourProject/
+├── Models/          (Entity classes)
+├── Repositories/    (Data access layer)
+└── Services/        (Business logic layer)
+                </pre>
+            </div>
+
+            <ul>
+                <li><strong>Models:</strong> Contains entity classes that represent database tables</li>
+                <li><strong>Repositories:</strong> Contains data access interfaces and implementations</li>
+                <li><strong>Services:</strong> Contains business logic and validation</li>
+            </ul>
+
+            <div class="tip">
+                <p><strong>Best Practice:</strong> This three-layer architecture provides clear separation of concerns, making your code more maintainable, testable, and scalable.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="product-entity">
+            <h2 id="product-entity">Creating the Product Entity</h2>
+            
+            <h3>Step 1: Create the Entity File</h3>
+            <p>In the Models folder, create a new file named <code>Product.cs</code>:</p>
+            <ol>
+                <li>Right-click the Models folder</li>
+                <li>Select "New File"</li>
+                <li>Type <code>Product.cs</code> as the filename</li>
+            </ol>
+
+            <h3>Step 2: Define the Product Entity</h3>
+            <pre><code class="language-csharp">public class Product
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public string Description { get; set; } = string.Empty;
+}</code></pre>
+
+            <h3>Property Breakdown</h3>
+            <dl>
+                <dt>Id</dt>
+                <dd>Integer property serving as the primary key for database identification</dd>
+                
+                <dt>Name</dt>
+                <dd>String property for the product name, initialized with string.Empty to avoid null reference warnings</dd>
+                
+                <dt>Price</dt>
+                <dd>Decimal property for the product cost, providing precision for monetary values</dd>
+                
+                <dt>Description</dt>
+                <dd>String property for additional product details, initialized with string.Empty</dd>
+            </dl>
+
+            <div class="note">
+                <p><strong>Note:</strong> Using <code>string.Empty</code> as default values helps avoid null reference warnings in modern C# with nullable reference types enabled.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="repository-interface">
+            <h2 id="repository-interface">Creating the Repository Interface</h2>
+            
+            <h3>Step 1: Create the Interface File</h3>
+            <p>In the Repositories folder, create a new file named <code>IProductRepository.cs</code>:</p>
+            <ol>
+                <li>Right-click the Repositories folder</li>
+                <li>Select "New File"</li>
+                <li>Type <code>IProductRepository.cs</code> as the filename</li>
+            </ol>
+
+            <h3>Step 2: Define the Repository Interface</h3>
+            <pre><code class="language-csharp">public interface IProductRepository
+{
+    Task&lt;Product?&gt; GetByIdAsync(int id);
+    Task&lt;IEnumerable&lt;Product&gt;&gt; GetAllAsync();
+    Task&lt;Product&gt; CreateAsync(Product product);
+    Task&lt;Product&gt; UpdateAsync(Product product);
+    Task DeleteAsync(int id);
+}</code></pre>
+
+            <h3>Repository Methods Explained</h3>
+            <dl>
+                <dt>GetByIdAsync(int id)</dt>
+                <dd>Retrieves a single product by its ID. Returns nullable Product to handle cases where the product doesn't exist.</dd>
+                
+                <dt>GetAllAsync()</dt>
+                <dd>Retrieves all products from the database. Returns an enumerable collection of products.</dd>
+                
+                <dt>CreateAsync(Product product)</dt>
+                <dd>Adds a new product to the database. Returns the created product with its generated ID.</dd>
+                
+                <dt>UpdateAsync(Product product)</dt>
+                <dd>Modifies an existing product in the database. Returns the updated product.</dd>
+                
+                <dt>DeleteAsync(int id)</dt>
+                <dd>Removes a product from the database by its ID. Returns Task for asynchronous operation completion.</dd>
+            </dl>
+
+            <div class="note">
+                <p><strong>Why Async Methods?</strong> All methods are asynchronous to support scalable applications. Asynchronous operations prevent blocking threads during database access, allowing the application to handle more concurrent requests efficiently.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="service-interface">
+            <h2 id="service-interface">Creating the Service Interface</h2>
+            
+            <h3>Step 1: Create the Service Interface File</h3>
+            <p>In the Services folder, create a new file named <code>IProductService.cs</code>:</p>
+            <ol>
+                <li>Right-click the Services folder</li>
+                <li>Select "New File"</li>
+                <li>Type <code>IProductService.cs</code> as the filename</li>
+            </ol>
+
+            <h3>Step 2: Define the Service Interface</h3>
+            <pre><code class="language-csharp">public interface IProductService
+{
+    Task&lt;Product?&gt; GetProductAsync(int id);
+    Task&lt;IEnumerable&lt;Product&gt;&gt; GetAllProductsAsync();
+    Task&lt;Product&gt; CreateProductAsync(Product product);
+    Task&lt;Product&gt; UpdateProductAsync(Product product);
+    Task DeleteProductAsync(int id);
+}</code></pre>
+
+            <div class="tip">
+                <p><strong>Service vs Repository:</strong> The service interface mirrors the repository interface but focuses on business operations rather than data access. This separation allows you to add validation, business rules, logging, and other logic without affecting the data access layer.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="service-implementation">
+            <h2 id="service-implementation">Implementing the Service Class</h2>
+            
+            <h3>Step 1: Create the Service Implementation File</h3>
+            <p>In the Services folder, create a new file named <code>ProductService.cs</code>:</p>
+            <ol>
+                <li>Right-click the Services folder</li>
+                <li>Select "New File"</li>
+                <li>Type <code>ProductService.cs</code> as the filename</li>
+            </ol>
+
+            <h3>Step 2: Implement the Service Class with Dependency Injection</h3>
+            <pre><code class="language-csharp">public class ProductService : IProductService
+{
+    private readonly IProductRepository _repository;
+
+    public ProductService(IProductRepository repository)
+    {
+        _repository = repository;
+    }
+
+    // Methods will be implemented below
+}</code></pre>
+
+            <h3>Understanding Dependency Injection</h3>
+            <p>The service class uses constructor injection to receive the <code>IProductRepository</code> interface. This pattern provides several benefits:</p>
+            <ul>
+                <li><strong>Testability:</strong> Allows substituting mock repositories during unit testing</li>
+                <li><strong>Loose Coupling:</strong> Service depends on the interface, not concrete implementation</li>
+                <li><strong>Flexibility:</strong> Easy to swap repository implementations without changing service code</li>
+                <li><strong>Inversion of Control:</strong> Dependencies are provided externally rather than created internally</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="create-method">
+            <h2 id="create-method">Implementing the Create Method with Validation</h2>
+            
+            <h3>Create Product Method</h3>
+            <pre><code class="language-csharp">public async Task&lt;Product&gt; CreateProductAsync(Product product)
+{
+    // Validate product name
+    if (string.IsNullOrWhiteSpace(product.Name))
+    {
+        throw new ArgumentException("Product name cannot be empty", nameof(product.Name));
+    }
+
+    // Validate product price
+    if (product.Price <= 0)
+    {
+        throw new ArgumentException("Product price must be positive", nameof(product.Price));
+    }
+
+    // Call repository to create the product
+    return await _repository.CreateAsync(product);
+}</code></pre>
+
+            <h3>Validation Logic Breakdown</h3>
+            <p>The create method implements business validation before calling the repository:</p>
+            
+            <h4>Name Validation</h4>
+            <p>Checks if the product name is null, empty, or contains only whitespace. Throws an <code>ArgumentException</code> with a descriptive message if validation fails.</p>
+
+            <h4>Price Validation</h4>
+            <p>Ensures the price is a positive value. Throws an <code>ArgumentException</code> if the price is zero or negative.</p>
+
+            <h4>Repository Call</h4>
+            <p>Only after all validation passes does the method call the repository's <code>CreateAsync</code> method to persist the product to the database.</p>
+
+            <div class="note">
+                <p><strong>Separation of Concerns:</strong> Business validation logic resides in the service layer, not the repository. This keeps data access code simple and focused on database operations while centralizing business rules in the service layer.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="read-methods">
+            <h2 id="read-methods">Implementing Read Operations</h2>
+            
+            <h3>Get Product by ID Method</h3>
+            <pre><code class="language-csharp">public async Task&lt;Product?&gt; GetProductAsync(int id)
+{
+    // Validate ID
+    if (id <= 0)
+    {
+        throw new ArgumentException("Product ID must be positive", nameof(id));
+    }
+
+    // Call repository to retrieve the product
+    return await _repository.GetByIdAsync(id);
+}</code></pre>
+
+            <h3>Get All Products Method</h3>
+            <pre><code class="language-csharp">public async Task&lt;IEnumerable&lt;Product&gt;&gt; GetAllProductsAsync()
+{
+    // Call repository to retrieve all products
+    return await _repository.GetAllAsync();
+}</code></pre>
+
+            <h3>Read Operations Explained</h3>
+            
+            <h4>GetProductAsync Validation</h4>
+            <p>Validates that the ID is a positive integer before calling the repository. This prevents unnecessary database queries for invalid IDs and provides clear error messages to calling code.</p>
+
+            <h4>GetAllProductsAsync Simplicity</h4>
+            <p>The get all products method is simpler since it doesn't require validation. However, in real-world applications, you might add additional logic here such as:</p>
+            <ul>
+                <li>Filtering products by category or status</li>
+                <li>Implementing pagination for large datasets</li>
+                <li>Applying sorting based on various criteria</li>
+                <li>Caching frequently accessed product lists</li>
+            </ul>
+
+            <div class="tip">
+                <p><strong>Performance Consideration:</strong> For applications with large product catalogs, consider implementing pagination in the <code>GetAllProductsAsync</code> method to avoid loading excessive data into memory.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="architecture-benefits">
+            <h2 id="architecture-benefits">Benefits of Service Layer Architecture</h2>
+            
+            <h3>Key Advantages</h3>
+            <dl>
+                <dt>Separation of Concerns</dt>
+                <dd>Business logic is separated from data access, making code more maintainable and easier to understand. Each layer has a clear, focused responsibility.</dd>
+                
+                <dt>Testability</dt>
+                <dd>Services can be tested independently by mocking the repository interface. This enables comprehensive unit testing without requiring database access.</dd>
+                
+                <dt>Reusability</dt>
+                <dd>Business logic in the service layer can be reused across different controllers, APIs, or even different applications.</dd>
+                
+                <dt>Maintainability</dt>
+                <dd>Changes to business rules only require updating the service layer. Data access logic remains unchanged, reducing the risk of introducing bugs.</dd>
+                
+                <dt>Scalability</dt>
+                <dd>Asynchronous methods support high-concurrency scenarios. The architecture can easily accommodate caching, distributed transactions, or microservices patterns.</dd>
+                
+                <dt>Flexibility</dt>
+                <dd>Repository implementations can be swapped without changing service code. This allows moving from Entity Framework to Dapper, or from SQL Server to PostgreSQL, with minimal code changes.</dd>
+            </dl>
+        </section>
+
+        <section aria-labelledby="best-practices">
+            <h2 id="best-practices">CRUD Implementation Best Practices</h2>
+            
+            <h3>Validation Placement</h3>
+            <p>Always place business validation in the service layer, not the repository. Repositories should focus solely on data access operations.</p>
+
+            <h3>Async/Await Patterns</h3>
+            <p>Use async/await consistently throughout the call chain from controller to service to repository. This maximizes scalability and prevents thread blocking.</p>
+
+            <h3>Error Handling</h3>
+            <p>Throw meaningful exceptions with descriptive messages. Include parameter names in ArgumentException constructors to help debugging.</p>
+
+            <h3>Dependency Injection</h3>
+            <p>Always inject dependencies through constructors rather than creating instances directly. This supports testing and follows SOLID principles.</p>
+
+            <h3>Interface-First Design</h3>
+            <p>Define interfaces before implementations. This encourages thinking about contracts and makes it easier to create mock implementations for testing.</p>
+
+            <h3>Nullable Reference Types</h3>
+            <p>Use nullable annotations appropriately (Product?) to indicate when methods might return null, helping prevent null reference exceptions.</p>
+        </section>
+
+        <section aria-labelledby="next-steps">
+            <h2 id="next-steps">Completing the Implementation</h2>
+            <p>To complete your CRUD implementation, you'll need to:</p>
+            <ul>
+                <li>Implement the <code>UpdateProductAsync</code> method with validation for both ID and product properties</li>
+                <li>Implement the <code>DeleteProductAsync</code> method with ID validation</li>
+                <li>Create the concrete repository implementation using Entity Framework Core</li>
+                <li>Configure dependency injection in <code>Program.cs</code> to register services and repositories</li>
+                <li>Create API controllers that consume the product service</li>
+                <li>Add comprehensive error handling and logging throughout the layers</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="conclusion">
+            <h2 id="conclusion">Conclusion</h2>
+            <p>You've now learned how to implement CRUD operations using Service Layer Architecture with Entity Framework Core. This includes:</p>
+            <ul>
+                <li>Creating entity models with appropriate property types and default values</li>
+                <li>Defining repository interfaces for data access operations</li>
+                <li>Creating service interfaces that focus on business operations</li>
+                <li>Implementing service classes with dependency injection</li>
+                <li>Adding business validation to create and read operations</li>
+                <li>Understanding the benefits of layered architecture</li>
+            </ul>
+            <p>This architecture pattern is used in enterprise applications handling millions of transactions daily because it provides the testability, maintainability, and scalability required for production-ready applications.</p>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <p>CRUD Operations with Service Layer Architecture Tutorial - ASP.NET Core and Entity Framework Core</p>
+    </footer>
+</body>
+</html>
