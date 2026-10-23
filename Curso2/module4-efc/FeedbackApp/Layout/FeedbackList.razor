@@ -1,0 +1,25 @@
+@page "/feedback-list"
+@using FeedbackApp.Services;
+@inject FeedbackService FeedbackService
+
+<h3>Submitted Feedback</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Comment</th>
+            </tr>
+    </thead>
+    <tbody>
+            @foreach (var feedback in FeedbackService.GetAllFeedbacks())
+            {
+            <tr>
+            <td>@feedback.Name</td>
+            <td>@feedback.Email</td>
+            <td>@feedback.Comment</td>
+            </tr>
+            }
+    </tbody>
+</table>
