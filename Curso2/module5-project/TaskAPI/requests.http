@@ -1,0 +1,47 @@
+@baseUrl = http://localhost:5072
+
+GET {{baseUrl}}/api/categories
+
+### 
+GET {{baseUrl}}/api/tasks
+
+###
+POST {{baseUrl}}/api/tasks 
+Content-Type: application/json
+
+{
+  "title": "Complete project",
+  "description": "Finish the task API",
+  "dueDate": "2024-12-31T23:59:59",
+  "status": 0,
+  "categoryId": 2
+}
+
+###
+POST {{baseUrl}}/api/tasks 
+Content-Type: application/json
+
+{
+  "title": "Finish course ASP.NET",
+  "description": "Finish the Module 5",
+  "dueDate": "2027-12-31T23:59:59",
+  "status": 0,
+  "categoryId": 1
+}
+
+###
+
+GET {{baseUrl}}/api/tasks/1
+
+
+###
+DELETE {{baseUrl}}/api/tasks/3
+
+###
+POST {{baseUrl}}/api/categories
+Content-Type: application/json
+
+{
+  "name": "Urgent",
+  "description": "High priority tasks"
+}
