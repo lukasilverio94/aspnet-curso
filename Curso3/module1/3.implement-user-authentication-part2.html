@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customizing ASP.NET Core Identity Pages</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5em;
+            color: #333;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 1em;
+            overflow-x: auto;
+            border-radius: 4px;
+            border-left: 4px solid #512bd4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+        .skip-link:focus {
+            position: static;
+            width: auto;
+            height: auto;
+            margin: 10px;
+            padding: 10px;
+            background: #fff;
+            border: 2px solid #000;
+            z-index: 1000;
+        }
+        h1, h2, h3, h4 {
+            color: #512bd4;
+            margin-top: 1.5em;
+        }
+        h1 {
+            border-bottom: 3px solid #512bd4;
+            padding-bottom: 0.3em;
+        }
+        h2 {
+            border-bottom: 2px solid #e1e1e1;
+            padding-bottom: 0.2em;
+        }
+        .concept-box {
+            background-color: #f0ebff;
+            border-left: 4px solid #512bd4;
+            padding: 1em;
+            margin: 1em 0;
+            border-radius: 4px;
+        }
+        .key-point {
+            background-color: #fff4e5;
+            border-left: 4px solid #ff8c00;
+            padding: 1em;
+            margin: 1em 0;
+            border-radius: 4px;
+        }
+        .workflow-step {
+            background-color: #f0f0f0;
+            padding: 0.5em 1em;
+            margin: 0.5em 0;
+            border-radius: 4px;
+            border-left: 3px solid #512bd4;
+        }
+        .command-box {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1em;
+            border-radius: 4px;
+            margin: 1em 0;
+        }
+        .command-box code {
+            background-color: transparent;
+            color: #d4d4d4;
+        }
+        .security-note {
+            background-color: #fff0f0;
+            border-left: 4px solid #dc3545;
+            padding: 1em;
+            margin: 1em 0;
+            border-radius: 4px;
+        }
+        kbd {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 0.1em 0.4em;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        ul, ol {
+            margin: 1em 0;
+            padding-left: 2em;
+        }
+        li {
+            margin: 0.5em 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
+        }
+        th, td {
+            padding: 0.75em;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #512bd4;
+            color: white;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .screenshot-placeholder {
+            background-color: #e9ecef;
+            border: 2px dashed #6c757d;
+            padding: 2em;
+            text-align: center;
+            margin: 1em 0;
+            border-radius: 4px;
+            color: #6c757d;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <header role="banner">
+        <h1>Customizing ASP.NET Core Identity Pages</h1>
+        <p>Implementing email confirmation, password reset, and custom authentication workflows</p>
+    </header>
+
+    <main id="main-content" role="main">
+        <section aria-labelledby="overview">
+            <h2 id="overview">Overview</h2>
+            <p>This tutorial demonstrates how to customize the scaffolded Identity pages to implement a complete authentication workflow with the following features:</p>
+            <ul>
+                <li>Customized registration process requiring email confirmation</li>
+                <li>Password reset functionality with time-limited tokens</li>
+                <li>Enhanced user interface with improved validation messages</li>
+                <li>Complete authentication workflow demonstration</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="customizing-registration">
+            <h2 id="customizing-registration">Customizing the Registration Process</h2>
+            
+            <h3>Opening the Registration File</h3>
+            <p>Navigate to the scaffolded Identity pages folder and open the registration file:</p>
+            
+            <div class="workflow-step">
+                Navigate to: <code>Areas/Identity/Pages/Account/Register.cshtml.cs</code>
+            </div>
+            
+            <h3>Locating the Registration Logic</h3>
+            <p>Scroll down to find the <code>OnPostAsync</code> method—this is where the registration logic executes when a user submits the registration form.</p>
+            
+            <pre><code class="language-csharp">public async Task&lt;IActionResult&gt; OnPostAsync(string returnUrl = null)
+{
+    returnUrl ??= Url.Content("~/");
+    ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+    
+    if (ModelState.IsValid)
+    {
+        var user = CreateUser();
+        await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+        await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+        
+        var result = await _userManager.CreateAsync(user, Input.Password);
+        
+        if (result.Succeeded)
+        {
+            // Registration logic continues here
+        }
+    }
+    
+    return Page();
+}</code></pre>
+            
+            <h3>Modifying to Require Email Confirmation</h3>
+            <p>Update the code to prevent automatic sign-in and send a confirmation email instead. Replace the automatic sign-in logic with email confirmation code:</p>
+            
+            <h4>Original Code (Comment Out or Remove)</h4>
+            <pre><code class="language-csharp">// Comment out or remove automatic sign-in
+// await _signInManager.SignInAsync(user, isPersistent: false);
+// return LocalRedirect(returnUrl);</code></pre>
+            
+            <h4>New Email Confirmation Code</h4>
+            <pre><code class="language-csharp">if (result.Succeeded)
+{
+    _logger.LogInformation("User created a new account with password.");
+    
+    // Generate email confirmation token
+    var userId = await _userManager.GetUserIdAsync(user);
+    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+    
+    // Create callback URL for email confirmation
+    var callbackUrl = Url.Page(
+        "/Account/ConfirmEmail",
+        pageHandler: null,
+        values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
+        protocol: Request.Scheme);
+    
+    // Send confirmation email
+    await _emailSender.SendEmailAsync(
+        Input.Email,
+        "Confirm your email",
+        $"Please confirm your account by &lt;a href='{HtmlEncoder.Default.Encode(callbackUrl)}'&gt;clicking here&lt;/a&gt;.");
+    
+    if (_userManager.Options.SignIn.RequireConfirmedAccount)
+    {
+        return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
+    }
+}</code></pre>
+            
+            <div class="concept-box">
+                <h4>How Email Confirmation Works</h4>
+                <ol>
+                    <li><strong>Token Generation:</strong> The system generates a unique confirmation token using <code>GenerateEmailConfirmationTokenAsync</code></li>
+                    <li><strong>URL Encoding:</strong> The token is Base64 URL-encoded for safe transmission in email links</li>
+                    <li><strong>Callback URL Creation:</strong> A confirmation URL is created pointing to the ConfirmEmail page with the user ID and token</li>
+                    <li><strong>Email Dispatch:</strong> The confirmation email is sent with the callback link embedded</li>
+                    <li><strong>Redirection:</strong> Instead of signing in automatically, users are redirected to a confirmation page</li>
+                </ol>
+            </div>
+        </section>
+
+        <section aria-labelledby="password-reset">
+            <h2 id="password-reset">Understanding Password Reset Functionality</h2>
+            
+            <h3>Forgot Password Implementation</h3>
+            <p>Open the Forgot Password file to examine how password reset tokens are generated:</p>
+            
+            <div class="workflow-step">
+                Open: <code>Areas/Identity/Pages/Account/ForgotPassword.cshtml.cs</code>
+            </div>
+            
+            <h4>Forgot Password OnPostAsync Method</h4>
+            <pre><code class="language-csharp">public async Task&lt;IActionResult&gt; OnPostAsync()
+{
+    if (ModelState.IsValid)
+    {
+        var user = await _userManager.FindByEmailAsync(Input.Email);
+        
+        if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
+        {
+            // Don't reveal that the user does not exist or is not confirmed
+            return RedirectToPage("./ForgotPasswordConfirmation");
+        }
+        
+        // Generate password reset token
+        var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+        
+        // Create callback URL for password reset
+        var callbackUrl = Url.Page(
+            "/Account/ResetPassword",
+            pageHandler: null,
+            values: new { area = "Identity", code },
+            protocol: Request.Scheme);
+        
+        // Send password reset email
+        await _emailSender.SendEmailAsync(
+            Input.Email,
+            "Reset Password",
+            $"Please reset your password by &lt;a href='{HtmlEncoder.Default.Encode(callbackUrl)}'&gt;clicking here&lt;/a&gt;.");
+        
+        return RedirectToPage("./ForgotPasswordConfirmation");
+    }
+    
+    return Page();
+}</code></pre>
+            
+            <h4>Password Reset Token Generation Process</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Step</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>User Lookup</td>
+                        <td>System finds the user account by email address</td>
+                    </tr>
+                    <tr>
+                        <td>Token Generation</td>
+                        <td><code>GeneratePasswordResetTokenAsync</code> creates a time-limited reset token</td>
+                    </tr>
+                    <tr>
+                        <td>URL Encoding</td>
+                        <td>Token is Base64 URL-encoded for safe transmission</td>
+                    </tr>
+                    <tr>
+                        <td>Callback URL</td>
+                        <td>Reset link is created pointing to the ResetPassword page with the token</td>
+                    </tr>
+                    <tr>
+                        <td>Email Sending</td>
+                        <td>Email with reset link is sent to the user's registered email address</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="security-note">
+                <p><strong>Security Best Practice:</strong> Notice that the system doesn't reveal whether a user account exists or if the email is confirmed. This prevents attackers from using the password reset feature to enumerate valid user accounts.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="reset-password">
+            <h2 id="reset-password">Password Reset Completion</h2>
+            
+            <h3>Opening the Reset Password File</h3>
+            <div class="workflow-step">
+                Open: <code>Areas/Identity/Pages/Account/ResetPassword.cshtml.cs</code>
+            </div>
+            
+            <h3>Reset Password OnPostAsync Method</h3>
+            <p>Navigate to the <code>OnPostAsync</code> method to see how the actual password reset is handled using the token:</p>
+            
+            <pre><code class="language-csharp">public async Task&lt;IActionResult&gt; OnPostAsync()
+{
+    if (!ModelState.IsValid)
+    {
+        return Page();
+    }
+    
+    var user = await _userManager.FindByEmailAsync(Input.Email);
+    if (user == null)
+    {
+        // Don't reveal that the user does not exist
+        return RedirectToPage("./ResetPasswordConfirmation");
+    }
+    
+    // Decode the token and reset the password
+    var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Input.Code));
+    var result = await _userManager.ResetPasswordAsync(user, code, Input.Password);
+    
+    if (result.Succeeded)
+    {
+        return RedirectToPage("./ResetPasswordConfirmation");
+    }
+    
+    foreach (var error in result.Errors)
+    {
+        ModelState.AddModelError(string.Empty, error.Description);
+    }
+    
+    return Page();
+}</code></pre>
+            
+            <h4>Token Validation and Password Update</h4>
+            <div class="concept-box">
+                <p>The <code>ResetPasswordAsync</code> method performs several critical operations:</p>
+                <ul>
+                    <li><strong>Token Validation:</strong> Verifies the reset token is valid and hasn't been tampered with</li>
+                    <li><strong>Expiration Check:</strong> Ensures the token hasn't expired (tokens have a default lifetime)</li>
+                    <li><strong>Password Update:</strong> If validation succeeds, updates the user's password with the new value</li>
+                    <li><strong>Token Invalidation:</strong> Once used, the token is invalidated to prevent reuse</li>
+                </ul>
+            </div>
+        </section>
+
+        <section aria-labelledby="ui-customization">
+            <h2 id="ui-customization">Customizing the User Interface</h2>
+            
+            <h3>Opening the Registration Markup</h3>
+            <p>Open the Register.cshtml file to modify the registration form UI:</p>
+            
+            <div class="workflow-step">
+                Open: <code>Areas/Identity/Pages/Account/Register.cshtml</code>
+            </div>
+            
+            <h3>Registration Form Markup</h3>
+            <pre><code class="language-html">&lt;div class="row"&gt;
+    &lt;div class="col-md-4"&gt;
+        &lt;form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post"&gt;
+            &lt;h2&gt;Create a new account.&lt;/h2&gt;
+            &lt;hr /&gt;
+            
+            &lt;div asp-validation-summary="ModelOnly" class="text-danger" role="alert"&gt;&lt;/div&gt;
+            
+            &lt;div class="form-floating mb-3"&gt;
+                &lt;input asp-for="Input.Email" class="form-control" 
+                       autocomplete="username" aria-required="true" 
+                       placeholder="name@example.com" /&gt;
+                &lt;label asp-for="Input.Email"&gt;Email&lt;/label&gt;
+                &lt;span asp-validation-for="Input.Email" class="text-danger"&gt;&lt;/span&gt;
+            &lt;/div&gt;
+            
+            &lt;div class="form-floating mb-3"&gt;
+                &lt;input asp-for="Input.Password" class="form-control" 
+                       autocomplete="new-password" aria-required="true" 
+                       placeholder="password" type="password" /&gt;
+                &lt;label asp-for="Input.Password"&gt;Password&lt;/label&gt;
+                &lt;span asp-validation-for="Input.Password" class="text-danger"&gt;&lt;/span&gt;
+            &lt;/div&gt;
+            
+            &lt;div class="form-floating mb-3"&gt;
+                &lt;input asp-for="Input.ConfirmPassword" class="form-control" 
+                       autocomplete="new-password" aria-required="true" 
+                       placeholder="password" type="password" /&gt;
+                &lt;label asp-for="Input.ConfirmPassword"&gt;Confirm Password&lt;/label&gt;
+                &lt;span asp-validation-for="Input.ConfirmPassword" class="text-danger"&gt;&lt;/span&gt;
+            &lt;/div&gt;
+            
+            &lt;button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary"&gt;
+                Register
+            &lt;/button&gt;
+        &lt;/form&gt;
+    &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+            
+            <h3>UI Customization Options</h3>
+            
+            <h4>1. Enhanced Validation Messages</h4>
+            <p>Customize the validation summary to provide more user-friendly and specific error messages:</p>
+            <pre><code class="language-html">&lt;div asp-validation-summary="ModelOnly" class="text-danger" role="alert"&gt;
+    &lt;h4&gt;Please correct the following errors:&lt;/h4&gt;
+&lt;/div&gt;</code></pre>
+            
+            <h4>2. Password Strength Indicator</h4>
+            <p>Add real-time password strength validation by modifying the password input and including JavaScript:</p>
+            <pre><code class="language-html">&lt;div class="form-floating mb-3"&gt;
+    &lt;input asp-for="Input.Password" class="form-control" 
+           id="password" autocomplete="new-password" 
+           aria-required="true" placeholder="password" 
+           type="password" /&gt;
+    &lt;label asp-for="Input.Password"&gt;Password&lt;/label&gt;
+    &lt;span asp-validation-for="Input.Password" class="text-danger"&gt;&lt;/span&gt;
+    &lt;div id="password-strength" class="mt-2"&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+    document.getElementById('password').addEventListener('input', function(e) {
+        const password = e.target.value;
+        const strengthDiv = document.getElementById('password-strength');
+        
+        let strength = 'Weak';
+        let color = 'text-danger';
+        
+        if (password.length &gt;= 8 && /[A-Z]/.test(password) && 
+            /[a-z]/.test(password) && /[0-9]/.test(password)) {
+            strength = 'Strong';
+            color = 'text-success';
+        } else if (password.length &gt;= 6) {
+            strength = 'Medium';
+            color = 'text-warning';
+        }
+        
+        strengthDiv.innerHTML = `&lt;small class="${color}"&gt;Password Strength: ${strength}&lt;/small&gt;`;
+    });
+&lt;/script&gt;</code></pre>
+            
+            <h4>3. User Guidance</h4>
+            <p>Add helpful text to guide users through password requirements:</p>
+            <pre><code class="language-html">&lt;div class="alert alert-info" role="alert"&gt;
+    &lt;h5&gt;Password Requirements:&lt;/h5&gt;
+    &lt;ul&gt;
+        &lt;li&gt;At least 8 characters long&lt;/li&gt;
+        &lt;li&gt;Contains at least one uppercase letter&lt;/li&gt;
+        &lt;li&gt;Contains at least one lowercase letter&lt;/li&gt;
+        &lt;li&gt;Contains at least one number&lt;/li&gt;
+        &lt;li&gt;Contains at least one special character&lt;/li&gt;
+    &lt;/ul&gt;
+&lt;/div&gt;</code></pre>
+            
+            <h3>Validation Summary Customization</h3>
+            <div class="concept-box">
+                <p><strong>Validation Summary Location:</strong> The validation summary displays any errors that occur during registration, including issues with email format, password complexity, or duplicate accounts. You can customize these messages to be more user-friendly and specific by:</p>
+                <ul>
+                    <li>Adding custom CSS classes for better visual presentation</li>
+                    <li>Including icons or symbols to draw attention</li>
+                    <li>Providing contextual help text alongside error messages</li>
+                    <li>Grouping related errors together for clarity</li>
+                </ul>
+            </div>
+        </section>
+
+        <section aria-labelledby="testing-workflow">
+            <h2 id="testing-workflow">Demonstrating the Complete Authentication Workflow</h2>
+            
+            <h3>Running the Application</h3>
+            <p>Open a terminal and run the application to test the authentication workflow:</p>
+            
+            <div class="command-box">
+                <code>dotnet run</code>
+            </div>
+            
+            <div class="key-point">
+                <p><strong>Application Status:</strong> The application is now running and available on localhost port 5281 (or your configured port). The terminal displays the URL where you can access the application.</p>
+            </div>
+            
+            <h3>Testing User Registration</h3>
+            
+            <h4>Step 1: Navigate to Home Page</h4>
+            <div class="screenshot-placeholder">
+                The home page displays the default ASP.NET Core template with authentication links in the top navigation bar
+            </div>
+            
+            <h4>Step 2: Access Registration Page</h4>
+            <p>Select the "Register" link to view the customized registration page.</p>
+            
+            <div class="screenshot-placeholder">
+                Registration form with Email, Password, and Confirm Password fields with validation
+            </div>
+            
+            <h4>Step 3: Complete Registration Form</h4>
+            <p>Fill in the test registration information:</p>
+            <ul>
+                <li><strong>Email:</strong> test@example.com</li>
+                <li><strong>Password:</strong> A secure password meeting complexity requirements</li>
+                <li><strong>Confirm Password:</strong> Same password as above</li>
+            </ul>
+            
+            <h4>Step 4: Submit Registration</h4>
+            <div class="concept-box">
+                <p><strong>Email Confirmation Workflow:</strong> When you submit the registration form, the system triggers the email confirmation workflow. Users are presented with an email confirmation page explaining that they need to check their email to confirm their account. This prevents immediate access until email ownership is verified.</p>
+            </div>
+            
+            <div class="screenshot-placeholder">
+                Email confirmation page instructing users to check their email
+            </div>
+        </section>
+
+        <section aria-labelledby="testing-login">
+            <h2 id="testing-login">Testing Login with Unconfirmed Account</h2>
+            
+            <h3>Attempting to Log In</h3>
+            <p>Try to log in with the unconfirmed account to verify that email confirmation is enforced:</p>
+            
+            <h4>Step 1: Navigate to Login Page</h4>
+            <p>Select the "Login" link from the navigation menu.</p>
+            
+            <h4>Step 2: Enter Credentials</h4>
+            <ul>
+                <li><strong>Email:</strong> test@example.com</li>
+                <li><strong>Password:</strong> Your secure password</li>
+            </ul>
+            
+            <h4>Step 3: Submit Login Form</h4>
+            <div class="screenshot-placeholder">
+                Login page showing "Invalid login attempt" error message
+            </div>
+            
+            <div class="security-note">
+                <p><strong>Expected Behavior:</strong> The system displays an "Invalid login attempt" message. This occurs because the account has not been confirmed via email yet. The system prevents login until email verification is complete, ensuring that users have access to their registered email address.</p>
+            </div>
+            
+            <div class="concept-box">
+                <p><strong>Terminal Output:</strong> You can observe the authentication attempt logged in the terminal window, showing the system's response to the unconfirmed account login attempt.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="password-reset-demo">
+            <h2 id="password-reset-demo">Demonstrating Password Reset</h2>
+            
+            <h3>Accessing Forgot Password</h3>
+            <p>From the login page, users can select "Forgot Password" to initiate the password reset process.</p>
+            
+            <h4>Step 1: Navigate to Forgot Password Page</h4>
+            <div class="screenshot-placeholder">
+                Forgot Password page with email input field
+            </div>
+            
+            <h4>Step 2: Enter Email Address</h4>
+            <p>Enter the registered email address to receive a password reset link.</p>
+            
+            <h4>Step 3: Submit Request</h4>
+            <div class="concept-box">
+                <p><strong>Reset Token Delivery:</strong> The system sends a time-limited reset token to the user's email address. The email contains a link that directs users to the password reset page with the token embedded in the URL.</p>
+            </div>
+            
+            <div class="screenshot-placeholder">
+                Confirmation page indicating that reset instructions have been sent via email
+            </div>
+            
+            <div class="key-point">
+                <p><strong>Note:</strong> In this demonstration environment, without a properly configured email account, the email won't actually be sent. In a production environment with the EmailService properly configured, users would receive the reset link and be able to complete the password reset process.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="authentication-flow">
+            <h2 id="authentication-flow">Complete Authentication System Workflow</h2>
+            
+            <h3>Registration and Email Confirmation Flow</h3>
+            <ol>
+                <li><strong>User Registration:</strong> User submits registration form with email and password</li>
+                <li><strong>Account Creation:</strong> System creates user account in the database</li>
+                <li><strong>Token Generation:</strong> Confirmation token is generated and encoded</li>
+                <li><strong>Email Dispatch:</strong> Confirmation email with callback link is sent to user</li>
+                <li><strong>Confirmation Page:</strong> User is redirected to page explaining email verification requirement</li>
+                <li><strong>Email Verification:</strong> User clicks link in email to confirm account</li>
+                <li><strong>Account Activation:</strong> Account is marked as confirmed and user can log in</li>
+            </ol>
+            
+            <h3>Login Security Flow</h3>
+            <ol>
+                <li><strong>Credential Entry:</strong> User enters email and password</li>
+                <li><strong>Account Lookup:</strong> System finds user account in database</li>
+                <li><strong>Password Validation:</strong> Password is verified against stored hash</li>
+                <li><strong>Confirmation Check:</strong> System verifies email has been confirmed</li>
+                <li><strong>Access Decision:</strong> Login succeeds only if all checks pass</li>
+                <li><strong>Error Handling:</strong> Appropriate error messages displayed for failures</li>
+            </ol>
+            
+            <h3>Password Reset Flow</h3>
+            <ol>
+                <li><strong>Reset Request:</strong> User enters email on Forgot Password page</li>
+                <li><strong>Account Verification:</strong> System verifies account exists and is confirmed</li>
+                <li><strong>Token Generation:</strong> Time-limited reset token is created</li>
+                <li><strong>Email Delivery:</strong> Reset link with token is sent via email</li>
+                <li><strong>Link Click:</strong> User clicks link to access Reset Password page</li>
+                <li><strong>New Password Entry:</strong> User provides new password</li>
+                <li><strong>Token Validation:</strong> System validates token hasn't expired</li>
+                <li><strong>Password Update:</strong> If valid, password is updated in database</li>
+                <li><strong>Token Invalidation:</strong> Used token is invalidated to prevent reuse</li>
+            </ol>
+        </section>
+
+        <section aria-labelledby="security-features">
+            <h2 id="security-features">Security Features Implemented</h2>
+            
+            <h3>Email Verification</h3>
+            <p>Prevents unauthorized account creation and ensures users have access to their registered email addresses.</p>
+            
+            <h3>Token-Based Operations</h3>
+            <p>Uses cryptographically secure tokens for email confirmation and password reset, with built-in expiration.</p>
+            
+            <h3>Information Disclosure Prevention</h3>
+            <p>Doesn't reveal whether accounts exist when users attempt password reset or login, preventing account enumeration attacks.</p>
+            
+            <h3>Secure Password Storage</h3>
+            <p>ASP.NET Core Identity automatically hashes passwords using industry-standard algorithms before storing them.</p>
+            
+            <h3>Account Lockout Protection</h3>
+            <p>Built-in protection against brute force attacks through configurable account lockout policies.</p>
+            
+            <h3>HTTPS Enforcement</h3>
+            <p>Callback URLs use the request scheme, ensuring HTTPS is used in production environments for secure token transmission.</p>
+        </section>
+
+        <section aria-labelledby="key-concepts">
+            <h2 id="key-concepts">Key Concepts Summary</h2>
+            
+            <dl>
+                <dt>Email Confirmation Token</dt>
+                <dd>A cryptographically secure, time-limited token used to verify that users have access to their registered email address. Generated using <code>GenerateEmailConfirmationTokenAsync</code> and validated when users click the confirmation link.</dd>
+                
+                <dt>Password Reset Token</dt>
+                <dd>A secure, time-limited token generated for password reset operations. Created with <code>GeneratePasswordResetTokenAsync</code> and used to authenticate password change requests without requiring the current password.</dd>
+                
+                <dt>OnPostAsync Method</dt>
+                <dd>The ASP.NET Core Razor Pages method that handles form submissions. Contains the server-side logic for processing registration, login, and password reset operations.</dd>
+                
+                <dt>Callback URL</dt>
+                <dd>A URL embedded in confirmation and reset emails that includes the necessary tokens and parameters to complete the verification or reset process. Uses URL encoding to ensure special characters are properly transmitted.</dd>
+                
+                <dt>Validation Summary</dt>
+                <dd>An ASP.NET Core tag helper that displays validation errors from the ModelState. Shows user-friendly error messages for failed registration, login, or password reset attempts.</dd>
+                
+                <dt>RequireConfirmedAccount</dt>
+                <dd>An Identity option that prevents users from signing in until their email address has been confirmed, adding an extra layer of security to the authentication process.</dd>
+            </dl>
+        </section>
+
+        <section aria-labelledby="conclusion">
+            <h2 id="conclusion">Conclusion</h2>
+            
+            <p>You have now observed how to build and customize a complete authentication system using ASP.NET Core Identity. This demonstration covered:</p>
+            
+            <ul>
+                <li><strong>Customized Registration:</strong> Modified the registration process to require email confirmation instead of automatic sign-in</li>
+                <li><strong>Email Confirmation Workflow:</strong> Implemented token generation, callback URL creation, and email dispatch for account verification</li>
+                <li><strong>Password Reset Functionality:</strong> Examined how reset tokens are generated, validated, and used to securely update passwords</li>
+                <li><strong>UI Customization:</strong> Enhanced the registration form with better validation messages, password strength indicators, and user guidance</li>
+                <li><strong>Complete Workflow Testing:</strong> Demonstrated the entire authentication flow from registration through login attempts with unconfirmed accounts</li>
+            </ul>
+            
+            <div class="key-point">
+                <h3>Secure Authentication System</h3>
+                <p>These features work together to create a secure authentication system that provides a smooth user experience while protecting against common security threats including:</p>
+                <ul>
+                    <li>Unauthorized account creation without valid email access</li>
+                    <li>Account enumeration through login or password reset features</li>
+                    <li>Brute force password attacks</li>
+                    <li>Password reset token reuse or manipulation</li>
+                    <li>Man-in-the-middle attacks (when using HTTPS)</li>
+                </ul>
+            </div>
+            
+            <div class="concept-box">
+                <p><strong>Production Considerations:</strong> Before deploying to production, ensure that:</p>
+                <ul>
+                    <li>EmailService is properly configured with valid SMTP credentials</li>
+                    <li>HTTPS is enforced for all authentication pages</li>
+                    <li>Email templates are professionally designed and branded</li>
+                    <li>Token expiration times are appropriate for your security requirements</li>
+                    <li>Account lockout policies are configured to prevent abuse</li>
+                    <li>Logging and monitoring are implemented for security events</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <p>Customizing ASP.NET Core Identity Pages - Email Confirmation, Password Reset, and Authentication Workflows</p>
+    </footer>
+</body>
+</html>

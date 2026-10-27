@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Building Authentication with ASP.NET Core Identity</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5em;
+            color: #333;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 1em;
+            overflow-x: auto;
+            border-radius: 4px;
+            border-left: 4px solid #512bd4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+        .skip-link:focus {
+            position: static;
+            width: auto;
+            height: auto;
+            margin: 10px;
+            padding: 10px;
+            background: #fff;
+            border: 2px solid #000;
+            z-index: 1000;
+        }
+        h1, h2, h3, h4 {
+            color: #512bd4;
+            margin-top: 1.5em;
+        }
+        h1 {
+            border-bottom: 3px solid #512bd4;
+            padding-bottom: 0.3em;
+        }
+        h2 {
+            border-bottom: 2px solid #e1e1e1;
+            padding-bottom: 0.2em;
+        }
+        .concept-box {
+            background-color: #f0ebff;
+            border-left: 4px solid #512bd4;
+            padding: 1em;
+            margin: 1em 0;
+            border-radius: 4px;
+        }
+        .key-point {
+            background-color: #fff4e5;
+            border-left: 4px solid #ff8c00;
+            padding: 1em;
+            margin: 1em 0;
+            border-radius: 4px;
+        }
+        .workflow-step {
+            background-color: #f0f0f0;
+            padding: 0.5em 1em;
+            margin: 0.5em 0;
+            border-radius: 4px;
+            border-left: 3px solid #512bd4;
+        }
+        .command-box {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1em;
+            border-radius: 4px;
+            margin: 1em 0;
+        }
+        .command-box code {
+            background-color: transparent;
+            color: #d4d4d4;
+        }
+        kbd {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 0.1em 0.4em;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        ul, ol {
+            margin: 1em 0;
+            padding-left: 2em;
+        }
+        li {
+            margin: 0.5em 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
+        }
+        th, td {
+            padding: 0.75em;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #512bd4;
+            color: white;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <header role="banner">
+        <h1>Building Authentication with ASP.NET Core Identity</h1>
+        <p>Complete guide to implementing user registration, login, email confirmation, and password reset</p>
+    </header>
+
+    <main id="main-content" role="main">
+        <section aria-labelledby="overview">
+            <h2 id="overview">Demonstration Overview</h2>
+            <p>This demonstration shows how to build a complete authentication system using ASP.NET Core Identity with the following features:</p>
+            <ul>
+                <li>User registration with account creation</li>
+                <li>Login functionality with security validation</li>
+                <li>Email confirmation for account verification</li>
+                <li>Password reset capabilities</li>
+                <li>Secure and user-friendly authentication experience</li>
+            </ul>
+            
+            <div class="key-point">
+                <p><strong>Goal:</strong> By the end of this demonstration, you'll observe how all authentication components work together to create a comprehensive, secure identity management system.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="project-creation">
+            <h2 id="project-creation">Creating a New ASP.NET Core Project with Identity</h2>
+            
+            <h3>Opening the Terminal</h3>
+            <div class="workflow-step">
+                <strong>Step 1:</strong> Open the terminal in Visual Studio Code
+            </div>
+            <div class="workflow-step">
+                <strong>Step 2:</strong> Open a new terminal window for a clean workspace
+            </div>
+            <div class="workflow-step">
+                <strong>Step 3:</strong> Navigate to your code folder
+            </div>
+            
+            <h3>Creating the Project</h3>
+            <p>Use the .NET CLI to create a new web application with built-in identity authentication support:</p>
+            
+            <div class="command-box">
+                <code>dotnet new webapp --auth Individual -o AuthenticationDemo</code>
+            </div>
+            
+            <h4>Command Breakdown</h4>
+            <ul>
+                <li><code>dotnet new webapp</code> - Creates a new ASP.NET Core web application</li>
+                <li><code>--auth Individual</code> - Configures the project with individual user authentication</li>
+                <li><code>-o AuthenticationDemo</code> - Sets the output directory and project name</li>
+            </ul>
+            
+            <div class="concept-box">
+                <p><strong>Result:</strong> This command creates a project with ASP.NET Core Identity already configured, including the necessary database context, identity services, and default UI pages.</p>
+            </div>
+            
+            <h3>Navigating to the Project</h3>
+            <p>After the project is created successfully, navigate into the project directory:</p>
+            
+            <div class="command-box">
+                <code>cd AuthenticationDemo</code>
+            </div>
+            
+            <h3>Opening in Visual Studio Code</h3>
+            <p>Open the project in VS Code using the following command:</p>
+            
+            <div class="command-box">
+                <code>code .</code>
+            </div>
+            
+            <p>This opens the AuthenticationDemo project in Visual Studio Code, ready for customization.</p>
+        </section>
+
+        <section aria-labelledby="identity-configuration">
+            <h2 id="identity-configuration">Understanding the Initial Identity Configuration</h2>
+            
+            <h3>Examining Program.cs</h3>
+            <p>Open the <code>Program.cs</code> file to see how Identity is configured in the application startup.</p>
+            
+            <h4>Identity Services Registration</h4>
+            <pre><code class="language-csharp">// Identity services are registered with default configuration
+builder.Services.AddDefaultIdentity&lt;IdentityUser&gt;(options =&gt; 
+{
+    options.SignIn.RequireConfirmedAccount = true;
+})
+.AddEntityFrameworkStores&lt;ApplicationDbContext&gt;();</code></pre>
+            
+            <h4>Key Configuration Elements</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>AddDefaultIdentity</code></td>
+                        <td>Registers ASP.NET Core Identity services with default configuration</td>
+                    </tr>
+                    <tr>
+                        <td><code>RequireConfirmedAccount</code></td>
+                        <td>Requires users to confirm their email before signing in</td>
+                    </tr>
+                    <tr>
+                        <td><code>AddEntityFrameworkStores</code></td>
+                        <td>Configures Entity Framework as the data store for identity information</td>
+                    </tr>
+                    <tr>
+                        <td><code>ApplicationDbContext</code></td>
+                        <td>The database context for storing user and identity data</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section aria-labelledby="identity-structure">
+            <h2 id="identity-structure">Exploring the Pre-Built Identity UI</h2>
+            
+            <h3>Identity Pages Location</h3>
+            <p>The project template includes pre-built identity UI pages in a specific folder structure:</p>
+            
+            <div class="workflow-step">
+                Navigate to: <code>Areas/Identity/Pages</code>
+            </div>
+            
+            <h3>Default Identity Pages</h3>
+            <p>This folder structure contains default pages for common identity operations:</p>
+            
+            <ul>
+                <li><strong>Registration:</strong> Pages for creating new user accounts</li>
+                <li><strong>Login:</strong> Authentication pages for existing users</li>
+                <li><strong>Account Management:</strong> User profile and settings pages</li>
+                <li><strong>Password Management:</strong> Password reset and recovery pages</li>
+                <li><strong>Email Confirmation:</strong> Account verification pages</li>
+            </ul>
+            
+            <div class="concept-box">
+                <p><strong>Customization:</strong> These pages can be scaffolded and customized to create a better user experience tailored to your application's needs.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="email-configuration">
+            <h2 id="email-configuration">Configuring Email Settings for Account Confirmation</h2>
+            
+            <h3>Opening Configuration File</h3>
+            <p>Open the <code>appsettings.json</code> file to add email configuration.</p>
+            
+            <h3>Adding Email Settings</h3>
+            <p>Add an email configuration section after the logging section:</p>
+            
+            <pre><code class="language-json">{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "EmailSettings": {
+    "SmtpServer": "smtp.gmail.com",
+    "SmtpPort": 587,
+    "SenderName": "Authentication Demo",
+    "SenderEmail": "your-email@gmail.com",
+    "Username": "your-email@gmail.com",
+    "Password": "your-app-password"
+  },
+  "AllowedHosts": "*"
+}</code></pre>
+            
+            <h4>Configuration Properties</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>SmtpServer</code></td>
+                        <td>Gmail SMTP server address</td>
+                    </tr>
+                    <tr>
+                        <td><code>SmtpPort</code></td>
+                        <td>Port number for SMTP communication (587 for TLS)</td>
+                    </tr>
+                    <tr>
+                        <td><code>SenderName</code></td>
+                        <td>Display name for outgoing emails</td>
+                    </tr>
+                    <tr>
+                        <td><code>SenderEmail</code></td>
+                        <td>Email address that sends confirmation messages</td>
+                    </tr>
+                    <tr>
+                        <td><code>Username</code></td>
+                        <td>SMTP authentication username</td>
+                    </tr>
+                    <tr>
+                        <td><code>Password</code></td>
+                        <td>SMTP authentication password (use app-specific password)</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="key-point">
+                <p><strong>Security Note:</strong> For Gmail, use an app-specific password rather than your regular account password. Never commit actual credentials to source control—use environment variables or secrets management in production.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="email-service">
+            <h2 id="email-service">Creating an Email Service</h2>
+            
+            <h3>Creating the Service File</h3>
+            <div class="workflow-step">
+                <strong>Step 1:</strong> Right-click on the project root
+            </div>
+            <div class="workflow-step">
+                <strong>Step 2:</strong> Select "New File" from the context menu
+            </div>
+            <div class="workflow-step">
+                <strong>Step 3:</strong> Name the file <code>EmailService.cs</code>
+            </div>
+            
+            <h3>Implementing the Email Service</h3>
+            <pre><code class="language-csharp">using System.Net;
+using System.Net.Mail;
+using Microsoft.Extensions.Configuration;
+
+namespace AuthenticationDemo
+{
+    public class EmailService
+    {
+        private readonly IConfiguration _configuration;
+
+        public EmailService(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
+        public async Task SendEmailAsync(string toEmail, string subject, string body)
+        {
+            var emailSettings = _configuration.GetSection("EmailSettings");
+            
+            var smtpServer = emailSettings["SmtpServer"];
+            var smtpPort = int.Parse(emailSettings["SmtpPort"]);
+            var senderEmail = emailSettings["SenderEmail"];
+            var senderName = emailSettings["SenderName"];
+            var username = emailSettings["Username"];
+            var password = emailSettings["Password"];
+
+            var mailMessage = new MailMessage
+            {
+                From = new MailAddress(senderEmail, senderName),
+                Subject = subject,
+                Body = body,
+                IsBodyHtml = true
+            };
+            
+            mailMessage.To.Add(toEmail);
+
+            using var smtpClient = new SmtpClient(smtpServer, smtpPort)
+            {
+                Credentials = new NetworkCredential(username, password),
+                EnableSsl = true
+            };
+
+            await smtpClient.SendMailAsync(mailMessage);
+        }
+    }
+}</code></pre>
+            
+            <h4>Service Implementation Details</h4>
+            <ul>
+                <li><strong>Dependency Injection:</strong> Uses <code>IConfiguration</code> to access app settings</li>
+                <li><strong>Configuration Binding:</strong> Reads email settings from the "EmailSettings" section</li>
+                <li><strong>SMTP Setup:</strong> Configures SMTP client with server, port, and credentials</li>
+                <li><strong>Email Composition:</strong> Creates and sends HTML email messages</li>
+                <li><strong>Async Operation:</strong> Uses async/await for non-blocking email sending</li>
+            </ul>
+            
+            <div class="concept-box">
+                <p><strong>How It Works:</strong> This service handles sending emails using the SMTP configuration we added to <code>appsettings.json</code>. The configuration is injected through dependency injection, allowing the service to reference settings by accessing the "EmailSettings" section.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="scaffolding">
+            <h2 id="scaffolding">Scaffolding Identity Pages for Customization</h2>
+            
+            <h3>Why Scaffold Identity Pages?</h3>
+            <p>Scaffolding generates customizable versions of the default identity pages, allowing you to tailor the registration flow and other authentication processes to your specific requirements.</p>
+            
+            <h3>Opening the Terminal</h3>
+            <div class="workflow-step">
+                Open a new terminal window in Visual Studio Code
+            </div>
+            
+            <h3>Installing the Identity UI Package</h3>
+            <p>First, ensure you have the Identity UI package installed:</p>
+            
+            <div class="command-box">
+                <code>dotnet add package Microsoft.AspNetCore.Identity.UI</code>
+            </div>
+            
+            <h3>Running the Scaffolding Command</h3>
+            <p>Use the ASP.NET code generator to scaffold specific identity pages:</p>
+            
+            <div class="command-box">
+                <code>dotnet aspnet-codegenerator identity -dc AuthenticationDemo.Data.ApplicationDbContext --files "Account.Register;Account.Login;Account.ConfirmEmail;Account.ForgotPassword;Account.ResetPassword"</code>
+            </div>
+            
+            <h4>Command Breakdown</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>aspnet-codegenerator identity</code></td>
+                        <td>Invokes the identity scaffolding tool</td>
+                    </tr>
+                    <tr>
+                        <td><code>-dc ApplicationDbContext</code></td>
+                        <td>Specifies the database context to use</td>
+                    </tr>
+                    <tr>
+                        <td><code>--files</code></td>
+                        <td>Lists specific pages to scaffold (semicolon-separated)</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h4>Scaffolded Pages</h4>
+            <ul>
+                <li><code>Account.Register</code> - User registration page</li>
+                <li><code>Account.Login</code> - User login page</li>
+                <li><code>Account.ConfirmEmail</code> - Email confirmation page</li>
+                <li><code>Account.ForgotPassword</code> - Password recovery initiation page</li>
+                <li><code>Account.ResetPassword</code> - Password reset page</li>
+            </ul>
+            
+            <h3>Result of Scaffolding</h3>
+            <div class="concept-box">
+                <p><strong>Generated Files:</strong> This generates customizable versions of the key identity pages in the <code>Areas/Identity/Pages/Account</code> folder. You can now modify these pages to customize the user experience, add additional validation, change styling, or integrate with other services.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="project-structure">
+            <h2 id="project-structure">Understanding the Project Structure</h2>
+            
+            <h3>Key Directories and Files</h3>
+            <pre><code>AuthenticationDemo/
+├── Areas/
+│   └── Identity/
+│       └── Pages/
+│           └── Account/
+│               ├── Register.cshtml
+│               ├── Login.cshtml
+│               ├── ConfirmEmail.cshtml
+│               ├── ForgotPassword.cshtml
+│               └── ResetPassword.cshtml
+├── Data/
+│   └── ApplicationDbContext.cs
+├── appsettings.json
+├── EmailService.cs
+└── Program.cs</code></pre>
+            
+            <h3>Component Descriptions</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>Areas/Identity/Pages</code></td>
+                        <td>Contains customizable identity UI pages</td>
+                    </tr>
+                    <tr>
+                        <td><code>ApplicationDbContext.cs</code></td>
+                        <td>Entity Framework database context for identity data</td>
+                    </tr>
+                    <tr>
+                        <td><code>appsettings.json</code></td>
+                        <td>Configuration file including email settings</td>
+                    </tr>
+                    <tr>
+                        <td><code>EmailService.cs</code></td>
+                        <td>Custom service for sending confirmation emails</td>
+                    </tr>
+                    <tr>
+                        <td><code>Program.cs</code></td>
+                        <td>Application startup and service configuration</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section aria-labelledby="authentication-flow">
+            <h2 id="authentication-flow">Complete Authentication Flow</h2>
+            
+            <h3>User Registration Process</h3>
+            <ol>
+                <li>User submits registration form with email and password</li>
+                <li>ASP.NET Core Identity validates the input data</li>
+                <li>System creates new user account in the database</li>
+                <li>Email confirmation token is generated</li>
+                <li>EmailService sends confirmation email with link</li>
+                <li>User receives email and clicks confirmation link</li>
+                <li>Account is confirmed and user can log in</li>
+            </ol>
+            
+            <h3>Login Process</h3>
+            <ol>
+                <li>User provides email and password credentials</li>
+                <li>Identity system validates credentials against database</li>
+                <li>If account requires confirmation, check confirmation status</li>
+                <li>Generate authentication cookie upon successful login</li>
+                <li>Redirect user to authorized area of application</li>
+            </ol>
+            
+            <h3>Password Reset Flow</h3>
+            <ol>
+                <li>User navigates to "Forgot Password" page</li>
+                <li>User enters registered email address</li>
+                <li>System generates password reset token</li>
+                <li>EmailService sends reset link to user's email</li>
+                <li>User clicks link and provides new password</li>
+                <li>System validates token and updates password</li>
+                <li>User can log in with new credentials</li>
+            </ol>
+        </section>
+
+        <section aria-labelledby="next-steps">
+            <h2 id="next-steps">Next Steps for Customization</h2>
+            
+            <h3>Registration Page Enhancements</h3>
+            <ul>
+                <li>Add additional user profile fields (name, phone number, etc.)</li>
+                <li>Implement custom password validation rules</li>
+                <li>Add client-side validation for better user experience</li>
+                <li>Customize email templates with branded styling</li>
+            </ul>
+            
+            <h3>Security Enhancements</h3>
+            <ul>
+                <li>Implement two-factor authentication (2FA)</li>
+                <li>Add account lockout policies for failed login attempts</li>
+                <li>Enable external authentication providers (Google, Facebook, etc.)</li>
+                <li>Implement password complexity requirements</li>
+            </ul>
+            
+            <h3>User Experience Improvements</h3>
+            <ul>
+                <li>Design custom login and registration page layouts</li>
+                <li>Add "Remember Me" functionality with persistent cookies</li>
+                <li>Implement user profile management pages</li>
+                <li>Create email notification preferences</li>
+            </ul>
+            
+            <h3>Service Integration</h3>
+            <ul>
+                <li>Register EmailService in dependency injection container</li>
+                <li>Inject EmailService into scaffolded identity pages</li>
+                <li>Configure email templates for different notification types</li>
+                <li>Add logging for authentication events</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="key-concepts">
+            <h2 id="key-concepts">Key Concepts Summary</h2>
+            
+            <dl>
+                <dt>ASP.NET Core Identity</dt>
+                <dd>A membership system that adds login functionality to ASP.NET Core applications, including user registration, authentication, authorization, and password management.</dd>
+                
+                <dt>Scaffolding</dt>
+                <dd>The process of generating customizable code files from templates, allowing developers to modify default implementations to meet specific requirements.</dd>
+                
+                <dt>Email Confirmation</dt>
+                <dd>A security feature that verifies user email addresses by sending a confirmation token via email, ensuring users have access to their registered email accounts.</dd>
+                
+                <dt>ApplicationDbContext</dt>
+                <dd>The Entity Framework database context that manages identity-related data including users, roles, claims, and authentication tokens.</dd>
+                
+                <dt>SMTP Configuration</dt>
+                <dd>Settings that enable the application to send emails through a mail server, including server address, port, credentials, and encryption settings.</dd>
+                
+                <dt>Dependency Injection</dt>
+                <dd>A design pattern where dependencies (like configuration or services) are provided to classes rather than created internally, improving testability and maintainability.</dd>
+            </dl>
+        </section>
+
+        <section aria-labelledby="conclusion">
+            <h2 id="conclusion">Conclusion</h2>
+            
+            <p>You've now seen how to create a complete authentication system using ASP.NET Core Identity. This demonstration covered:</p>
+            
+            <ul>
+                <li>Creating a new ASP.NET Core project with Identity support pre-configured</li>
+                <li>Understanding the initial Identity configuration in Program.cs</li>
+                <li>Exploring the pre-built Identity UI structure in the Areas folder</li>
+                <li>Configuring email settings for account confirmation functionality</li>
+                <li>Creating a custom EmailService for sending confirmation emails</li>
+                <li>Scaffolding Identity pages for customization and enhancement</li>
+            </ul>
+            
+            <div class="key-point">
+                <p><strong>Complete System:</strong> All these components work together to create a secure and user-friendly authentication experience. The scaffolded pages can now be customized to integrate the EmailService, enhance the user interface, add additional validation, and implement any business-specific authentication requirements.</p>
+            </div>
+            
+            <p>With this foundation in place, you can continue building out the authentication system by integrating the EmailService into the scaffolded pages, customizing the UI to match your application's design, and adding additional security features like two-factor authentication or external login providers.</p>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <p>Building Authentication with ASP.NET Core Identity - User Registration, Login, Email Confirmation, and Password Reset</p>
+    </footer>
+</body>
+</html>
