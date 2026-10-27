@@ -1,0 +1,370 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuring Database and Running Migrations for ASP.NET Core Identity</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5em;
+            color: #333;
+        }
+        
+        code {
+            background-color: #f5f5f5;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        pre {
+            background-color: #f5f5f5;
+            padding: 1em;
+            overflow-x: auto;
+            border-radius: 4px;
+            border-left: 4px solid #007acc;
+        }
+        
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+        
+        .skip-link:focus {
+            position: static;
+            width: auto;
+            height: auto;
+            margin: 10px;
+            padding: 10px;
+            background: #fff;
+            border: 2px solid #000;
+        }
+        
+        section {
+            margin-bottom: 2em;
+        }
+        
+        h2 {
+            color: #007acc;
+            border-bottom: 2px solid #007acc;
+            padding-bottom: 0.3em;
+            margin-top: 1.5em;
+        }
+        
+        h3 {
+            color: #005a9c;
+            margin-top: 1.2em;
+        }
+        
+        .note {
+            background-color: #e8f4f8;
+            border-left: 4px solid #007acc;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        
+        .step {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        
+        ol, ul {
+            margin: 1em 0;
+            padding-left: 2em;
+        }
+        
+        li {
+            margin: 0.5em 0;
+        }
+        
+        .troubleshooting {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 1em;
+            margin: 1em 0;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <header role="banner">
+        <h1>Configuring Database and Running Migrations for ASP.NET Core Identity</h1>
+    </header>
+
+    <main id="main-content" role="main">
+        <section aria-labelledby="introduction">
+            <h2 id="introduction">Introduction</h2>
+            <p>This tutorial completes the ASP.NET Core Identity integration by configuring the database connection string, creating the initial migration, applying it to the database, and testing the authentication system. By the end, you'll have a fully functional user registration and login system.</p>
+        </section>
+
+        <section aria-labelledby="learning-objectives">
+            <h2 id="learning-objectives">Learning Objectives</h2>
+            <ul>
+                <li>Configure database connection strings in appsettings.json</li>
+                <li>Install Entity Framework Core design-time tools</li>
+                <li>Create and apply database migrations</li>
+                <li>Verify database creation and table structure</li>
+                <li>Test the Identity registration system</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="connection-string">
+            <h2 id="connection-string">Configuring the Connection String</h2>
+            
+            <h3>Step 1: Open appsettings.json</h3>
+            <ol>
+                <li>In the Project Explorer, locate and click on <code>appsettings.json</code></li>
+                <li>The file will open in the editor</li>
+            </ol>
+
+            <h3>Step 2: Add Connection String Configuration</h3>
+            <p>Add the connection string element before the logging section:</p>
+            
+            <pre><code>{
+  "ConnectionStrings": {
+    "DefaultConnection": "Data Source=app.db"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*"
+}</code></pre>
+
+            <div class="note">
+                <strong>What This Does:</strong>
+                <p>This connection string tells Entity Framework to create a SQLite database file named <code>app.db</code> in your project directory. The <code>Data Source</code> parameter specifies the database file location.</p>
+            </div>
+
+            <h3>Step 3: Save Your Changes</h3>
+            <p>Save the <code>appsettings.json</code> file before proceeding to ensure your configuration changes are preserved.</p>
+        </section>
+
+        <section aria-labelledby="creating-migration">
+            <h2 id="creating-migration">Creating the Database Migration</h2>
+            
+            <h3>Understanding Migrations</h3>
+            <p>Migrations are Entity Framework's way of tracking and applying database schema changes. The initial migration creates all the Identity-related tables needed for user management.</p>
+
+            <h3>Step 1: Navigate to Terminal</h3>
+            <p>Return to your terminal window in Visual Studio Code.</p>
+
+            <h3>Step 2: Run the Migration Command</h3>
+            <pre><code>dotnet ef migrations add InitialCreate</code></pre>
+
+            <div class="troubleshooting">
+                <strong>Troubleshooting: Missing Design Package</strong>
+                <p>If you encounter an error about the Entity Framework Core Design package not being referenced, you need to install it first:</p>
+                <pre><code>dotnet add package Microsoft.EntityFrameworkCore.Design -v 8</code></pre>
+                <p>After successfully installing the design package, retry the migration command:</p>
+                <pre><code>dotnet ef migrations add InitialCreate</code></pre>
+            </div>
+
+            <div class="success">
+                <strong>Success Indicators:</strong>
+                <ul>
+                    <li>The command completes without errors</li>
+                    <li>A new <code>Migrations</code> folder appears in your project</li>
+                    <li>The migration files contain the database schema code</li>
+                </ul>
+            </div>
+
+            <h3>What Happens During Migration Creation</h3>
+            <p>Entity Framework generates code that represents your database schema, including:</p>
+            <ul>
+                <li>User tables for storing account information</li>
+                <li>Role tables for authorization</li>
+                <li>Claims tables for additional user attributes</li>
+                <li>Relationship definitions between tables</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="applying-migration">
+            <h2 id="applying-migration">Applying the Migration to the Database</h2>
+            
+            <h3>Step 1: Run Database Update Command</h3>
+            <p>With the migration successfully created, apply it to create the actual database:</p>
+            
+            <pre><code>dotnet ef database update</code></pre>
+
+            <h3>What Happens During Database Update</h3>
+            <p>Entity Framework executes the migration code to create your database and tables. You'll see SQL commands being executed for:</p>
+            <ul>
+                <li>Creating the database file</li>
+                <li>Setting up user identity tables</li>
+                <li>Creating roles tables</li>
+                <li>Establishing claims tables</li>
+                <li>Defining relationships between all tables</li>
+            </ul>
+
+            <div class="success">
+                <strong>Verification:</strong>
+                <p>After the command completes successfully, you'll notice a new <code>app.db</code> file in your project root directory. This SQLite database file contains all of your Identity tables.</p>
+            </div>
+
+            <div class="note">
+                <strong>Database File Note:</strong>
+                <p>While the <code>app.db</code> file is created and visible in your project, you don't need to open it directly. Entity Framework manages all database interactions through your code.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="testing-application">
+            <h2 id="testing-application">Testing Your Application</h2>
+            
+            <h3>Step 1: Run the Application</h3>
+            <pre><code>dotnet run</code></pre>
+
+            <p>The application will start up and display the localhost URL where it's running, typically something like:</p>
+            <pre><code>Now listening on: https://localhost:5277</code></pre>
+
+            <h3>Step 2: Navigate to Your Application</h3>
+            <ol>
+                <li>Open your web browser</li>
+                <li>Enter the localhost URL from the terminal (e.g., <code>https://localhost:5277</code>)</li>
+                <li>Your application should load normally</li>
+            </ol>
+
+            <div class="success">
+                <strong>Success Indicator:</strong>
+                <p>If your application loads without errors, the Identity system has been successfully integrated into your application.</p>
+            </div>
+
+            <h3>Step 3: Test User Registration</h3>
+            <p>Even though UI links haven't been added yet, you can test the registration functionality by navigating directly to the Identity pages.</p>
+
+            <p>Navigate to the registration page by appending <code>/Identity/Account/Register</code> to your localhost URL:</p>
+            <pre><code>https://localhost:5277/Identity/Account/Register</code></pre>
+
+            <div class="note">
+                <strong>What You Should See:</strong>
+                <p>The Identity registration page should load, displaying form fields for email, password, and password confirmation. This confirms that your Identity system integration was successful and is functioning properly.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="what-you-accomplished">
+            <h2 id="what-you-accomplished">What You've Accomplished</h2>
+            
+            <div class="success">
+                <p>Congratulations! You've successfully integrated ASP.NET Core Identity into your application. Here's what you've completed:</p>
+                <ul>
+                    <li><strong>Installed Required Packages:</strong> Added all necessary NuGet packages for Identity and Entity Framework</li>
+                    <li><strong>Created Database Context:</strong> Set up the ApplicationDbContext to manage Identity data</li>
+                    <li><strong>Configured Services and Middleware:</strong> Registered Identity services and authentication middleware in your application pipeline</li>
+                    <li><strong>Set Up Connection String:</strong> Configured the database connection in appsettings.json</li>
+                    <li><strong>Created Initial Migration:</strong> Generated the database schema code for Identity tables</li>
+                    <li><strong>Applied Migration:</strong> Created the actual database with all Identity tables</li>
+                    <li><strong>Tested the System:</strong> Verified that registration functionality works correctly</li>
+                </ul>
+            </div>
+        </section>
+
+        <section aria-labelledby="next-steps">
+            <h2 id="next-steps">Next Steps</h2>
+            <p>Now that your authentication system is set up, you can:</p>
+            <ol>
+                <li>Add login and registration links to your application's navigation</li>
+                <li>Customize the Identity UI pages to match your application's branding</li>
+                <li>Implement role-based authorization</li>
+                <li>Add email confirmation for new registrations</li>
+                <li>Configure two-factor authentication for enhanced security</li>
+                <li>Create protected pages that require authentication</li>
+            </ol>
+        </section>
+
+        <section aria-labelledby="key-concepts">
+            <h2 id="key-concepts">Key Concepts Summary</h2>
+            <dl>
+                <dt>Connection String</dt>
+                <dd>A configuration setting that specifies how to connect to a database, including the database type, location, and credentials</dd>
+                
+                <dt>Migration</dt>
+                <dd>A versioned set of changes to your database schema that can be applied or rolled back, allowing for controlled database evolution</dd>
+                
+                <dt>Entity Framework Design Tools</dt>
+                <dd>Command-line tools that enable migration creation and database updates during development</dd>
+                
+                <dt>SQLite Database</dt>
+                <dd>A lightweight, file-based database system ideal for development and small to medium applications</dd>
+                
+                <dt>Identity Tables</dt>
+                <dd>Database tables that store user accounts, passwords, roles, claims, and authentication-related information</dd>
+            </dl>
+        </section>
+
+        <section aria-labelledby="troubleshooting-guide">
+            <h2 id="troubleshooting-guide">Common Issues and Solutions</h2>
+            
+            <h3>Migration Command Fails</h3>
+            <div class="troubleshooting">
+                <strong>Problem:</strong> Error about missing Entity Framework Core Design package
+                <br><strong>Solution:</strong> Install the design package: <code>dotnet add package Microsoft.EntityFrameworkCore.Design</code>
+            </div>
+
+            <h3>Database Update Fails</h3>
+            <div class="troubleshooting">
+                <strong>Problem:</strong> Error during database update
+                <br><strong>Solution:</strong> Ensure your connection string is correct and you have write permissions in the project directory
+            </div>
+
+            <h3>Registration Page Not Found</h3>
+            <div class="troubleshooting">
+                <strong>Problem:</strong> 404 error when navigating to /Identity/Account/Register
+                <br><strong>Solution:</strong> Verify that you've added the Identity UI package and configured MapRazorPages() in your middleware
+            </div>
+        </section>
+
+        <section aria-labelledby="conclusion">
+            <h2 id="conclusion">Conclusion</h2>
+            <p>Your application now has a complete, production-ready authentication system with:</p>
+            <ul>
+                <li>Secure user registration with password hashing</li>
+                <li>Login functionality with session management</li>
+                <li>Database-backed user storage</li>
+                <li>Pre-built UI pages for common authentication workflows</li>
+                <li>A foundation for implementing advanced security features</li>
+            </ul>
+            <p>This Identity integration provides enterprise-grade security and user management capabilities that you can extend and customize to meet your specific application requirements.</p>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <p>ASP.NET Core Identity Configuration Tutorial - Database Setup and Testing</p>
+    </footer>
+</body>
+</html>
+```
