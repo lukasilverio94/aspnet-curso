@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTPS Configuration in ASP.NET Core Tutorial</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5em;
+            background-color: #ffffff;
+            color: #333;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 1.2em;
+            overflow-x: auto;
+            border-radius: 4px;
+            border-left: 4px solid #0066cc;
+            line-height: 1.4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+        .skip-link:focus {
+            position: static;
+            width: auto;
+            height: auto;
+            margin: 10px;
+            padding: 10px;
+            background: #fff;
+            border: 2px solid #000;
+            z-index: 1000;
+        }
+        h1 {
+            color: #0066cc;
+            border-bottom: 3px solid #0066cc;
+            padding-bottom: 0.3em;
+        }
+        h2 {
+            color: #0066cc;
+            margin-top: 1.5em;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 0.3em;
+        }
+        h3 {
+            color: #333;
+            margin-top: 1.2em;
+        }
+        h4 {
+            color: #555;
+            margin-top: 1em;
+        }
+        .concept-box {
+            background-color: #e8f4f8;
+            border-left: 4px solid #0066cc;
+            padding: 1em;
+            margin: 1.5em 0;
+            border-radius: 4px;
+        }
+        .concept-box h3 {
+            margin-top: 0;
+            color: #0066cc;
+        }
+        .warning-box {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1em;
+            margin: 1.5em 0;
+            border-radius: 4px;
+        }
+        .warning-box h4 {
+            margin-top: 0;
+            color: #856404;
+        }
+        ul, ol {
+            margin: 1em 0;
+            padding-left: 2em;
+        }
+        li {
+            margin: 0.5em 0;
+        }
+        dl {
+            margin: 1em 0;
+        }
+        dt {
+            font-weight: bold;
+            color: #0066cc;
+            margin-top: 0.8em;
+        }
+        dd {
+            margin-left: 2em;
+            margin-bottom: 0.8em;
+        }
+        footer {
+            margin-top: 3em;
+            padding-top: 1em;
+            border-top: 2px solid #e0e0e0;
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <header role="banner">
+        <h1>Configuring HTTPS in ASP.NET Core Applications</h1>
+        <p>A comprehensive guide to implementing secure web applications for development and production environments</p>
+    </header>
+
+    <main id="main-content" role="main">
+        <section aria-labelledby="learning-objectives">
+            <h2 id="learning-objectives">Learning Objectives</h2>
+            <p>By the end of this tutorial, you will be able to:</p>
+            <ul>
+                <li>Configure HTTPS redirection middleware in ASP.NET Core</li>
+                <li>Enable SSL certificates for secure communications</li>
+                <li>Implement HTTP Strict Transport Security (HSTS) headers</li>
+                <li>Differentiate between development and production HTTPS configurations</li>
+                <li>Troubleshoot common HTTPS endpoint issues</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="project-setup">
+            <h2 id="project-setup">Project Setup</h2>
+            <p>We'll be working with a sample ASP.NET Core application called "SecureWebApp" to demonstrate HTTPS configuration. Open Visual Studio Code and navigate to the project directory.</p>
+            
+            <h3>Opening the Program.cs File</h3>
+            <p>The <code>Program.cs</code> file contains the application's startup configuration. This is where we'll add our HTTPS and security configurations.</p>
+        </section>
+
+        <section aria-labelledby="https-redirection">
+            <h2 id="https-redirection">Configuring HTTPS Redirection</h2>
+            
+            <h3>Step 1: Adding HTTPS Redirection Service</h3>
+            <p>In the services configuration section of <code>Program.cs</code>, locate the <code>builder.Services</code> area and add the HTTPS redirection configuration:</p>
+            
+            <pre><code class="language-csharp">builder.Services.AddHttpsRedirection(options =>
+{
+    options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
+    options.HttpsPort = 5001;
+});</code></pre>
+
+            <h4>Configuration Breakdown:</h4>
+            <dl>
+                <dt>RedirectStatusCode</dt>
+                <dd>Set to <code>Status307TemporaryRedirect</code>, which indicates a temporary redirect that preserves the HTTP method and body during redirection</dd>
+                
+                <dt>HttpsPort</dt>
+                <dd>Set to <code>5001</code>, the default HTTPS port used by ASP.NET Core during local development with Kestrel</dd>
+            </dl>
+
+            <div class="concept-box">
+                <h3>Port Configuration in Production</h3>
+                <p>In production environments, HTTPS is often handled by reverse proxies like Nginx or IIS. The port configuration may differ from the development setting of 5001. The reverse proxy typically handles SSL termination and forwards requests to your application.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="hsts-configuration">
+            <h2 id="hsts-configuration">Implementing HTTP Strict Transport Security (HSTS)</h2>
+            
+            <h3>Step 2: Adding HSTS Service Configuration</h3>
+            <p>HSTS is a security feature that forces browsers to use HTTPS connections. Add the following configuration to the services section:</p>
+            
+            <pre><code class="language-csharp">builder.Services.AddHsts(options =>
+{
+    options.IncludeSubDomains = true;
+    options.MaxAge = TimeSpan.FromDays(60);
+});</code></pre>
+
+            <h4>HSTS Configuration Options:</h4>
+            <dl>
+                <dt>IncludeSubDomains</dt>
+                <dd>When set to <code>true</code>, the HSTS policy applies to all subdomains of the current domain, providing comprehensive security coverage</dd>
+                
+                <dt>MaxAge</dt>
+                <dd>Set to 60 days, this determines how long browsers should remember to only access the site via HTTPS. After this period expires, browsers will need to receive the HSTS header again</dd>
+            </dl>
+
+            <div class="concept-box">
+                <h3>What is HSTS?</h3>
+                <p>HTTP Strict Transport Security (HSTS) is a web security policy mechanism that helps protect websites against protocol downgrade attacks and cookie hijacking. Once a browser receives the HSTS header, it will automatically convert all HTTP requests to HTTPS for the specified duration, even if the user types "http://" in the address bar.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="middleware-configuration">
+            <h2 id="middleware-configuration">Configuring Middleware Pipeline</h2>
+            
+            <h3>Step 3: Adding HSTS Middleware (Production Only)</h3>
+            <p>Locate the application configuration section after the <code>var app = builder.Build();</code> statement. Add HSTS middleware conditionally for non-development environments:</p>
+            
+            <pre><code class="language-csharp">if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}</code></pre>
+
+            <p>This ensures HSTS is only enabled in production environments. During development, you typically don't need HSTS as you're working with self-signed certificates on localhost.</p>
+
+            <h3>Step 4: Adding HTTPS Redirection Middleware</h3>
+            <p>Add the HTTPS redirection middleware to the pipeline. This should come early in the middleware chain:</p>
+            
+            <pre><code class="language-csharp">app.UseHttpsRedirection();</code></pre>
+
+            <div class="concept-box">
+                <h3>Middleware Order Matters</h3>
+                <p>The HTTPS redirection middleware should be placed early in the pipeline to redirect HTTP requests to HTTPS before other middleware processes them. This ensures all requests are secured from the start of the pipeline.</p>
+            </div>
+
+            <h3>Complete Middleware Configuration Example</h3>
+            <pre><code class="language-csharp">var app = builder.Build();
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+
+// Other middleware follows...
+app.UseRouting();
+app.UseAuthorization();
+app.MapControllers();</code></pre>
+        </section>
+
+        <section aria-labelledby="testing-configuration">
+            <h2 id="testing-configuration">Testing the HTTPS Configuration</h2>
+            
+            <h3>Step 5: Running the Application</h3>
+            <p>Open the integrated terminal in Visual Studio Code and navigate to the project directory containing the <code>.csproj</code> file:</p>
+            
+            <pre><code class="language-bash">cd SecureWebApp
+dotnet run</code></pre>
+
+            <h3>Verifying HTTPS Endpoints</h3>
+            <p>When the application starts, the terminal output should display both HTTP and HTTPS endpoints:</p>
+            
+            <pre><code class="language-plaintext">Now listening on: http://localhost:5000
+Now listening on: https://localhost:5001</code></pre>
+
+            <div class="warning-box">
+                <h4>Troubleshooting: HTTPS Endpoint Not Appearing</h4>
+                <p>If the HTTPS endpoint doesn't appear in the terminal output, check your <code>launchSettings.json</code> file located in the Properties folder.</p>
+                
+                <p>Ensure the applicationUrl includes both HTTP and HTTPS URLs separated by a semicolon:</p>
+                
+                <pre><code class="language-json">{
+  "profiles": {
+    "SecureWebApp": {
+      "commandName": "Project",
+      "applicationUrl": "https://localhost:5001;http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}</code></pre>
+                
+                <p>After updating <code>launchSettings.json</code>, restart the application to see both endpoints listed.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="key-concepts">
+            <h2 id="key-concepts">Key Security Concepts Summary</h2>
+            
+            <dl>
+                <dt>HTTPS Redirection</dt>
+                <dd>Automatically redirects all HTTP requests to HTTPS, ensuring encrypted communication between client and server</dd>
+                
+                <dt>SSL/TLS Certificates</dt>
+                <dd>Digital certificates that enable encrypted connections. Development uses self-signed certificates, while production requires certificates from trusted Certificate Authorities</dd>
+                
+                <dt>HSTS (HTTP Strict Transport Security)</dt>
+                <dd>A security header that instructs browsers to only access the site via HTTPS for a specified duration</dd>
+                
+                <dt>Status Code 307</dt>
+                <dd>Temporary redirect status code that preserves the HTTP method and request body during redirection</dd>
+                
+                <dt>Middleware Pipeline</dt>
+                <dd>The sequence of components that process HTTP requests and responses. Order is critical for proper security implementation</dd>
+                
+                <dt>Environment-Based Configuration</dt>
+                <dd>Different security settings for development versus production environments, allowing flexibility during development while maintaining strict security in production</dd>
+            </dl>
+        </section>
+
+        <section aria-labelledby="best-practices">
+            <h2 id="best-practices">Security Best Practices</h2>
+            
+            <h3>Development Environment</h3>
+            <ul>
+                <li>Use self-signed certificates for local HTTPS testing</li>
+                <li>Avoid enabling HSTS in development to prevent browser caching issues</li>
+                <li>Keep development and production configurations separate</li>
+            </ul>
+
+            <h3>Production Environment</h3>
+            <ul>
+                <li>Always enable HSTS with appropriate MaxAge values (typically 30-365 days)</li>
+                <li>Include subdomains in HSTS policy when applicable</li>
+                <li>Use certificates from trusted Certificate Authorities</li>
+                <li>Configure reverse proxies (Nginx, IIS) to handle SSL termination</li>
+                <li>Place HTTPS redirection early in the middleware pipeline</li>
+                <li>Regularly update and renew SSL certificates before expiration</li>
+            </ul>
+
+            <h3>Additional Security Headers</h3>
+            <p>Beyond HTTPS and HSTS, consider implementing additional security headers:</p>
+            <ul>
+                <li><strong>X-Content-Type-Options:</strong> Prevents MIME type sniffing</li>
+                <li><strong>X-Frame-Options:</strong> Protects against clickjacking attacks</li>
+                <li><strong>Content-Security-Policy:</strong> Controls resource loading to prevent XSS attacks</li>
+                <li><strong>Referrer-Policy:</strong> Controls information sent in the Referer header</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="conclusion">
+            <h2 id="conclusion">Conclusion</h2>
+            <p>In this tutorial, you've learned how to configure HTTPS in ASP.NET Core applications for both development and production environments. You've implemented:</p>
+            <ul>
+                <li>HTTPS redirection services with proper status codes and port configuration</li>
+                <li>HTTP Strict Transport Security (HSTS) with subdomain inclusion and max-age settings</li>
+                <li>Environment-specific middleware configuration</li>
+                <li>Proper middleware pipeline ordering for security</li>
+                <li>Troubleshooting techniques for HTTPS endpoint issues</li>
+            </ul>
+            <p>These security configurations form the foundation of secure web applications, protecting data in transit and ensuring users connect to your application safely. Always test your HTTPS configuration in both development and production environments to verify proper implementation.</p>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <p>ASP.NET Core Security Tutorial - Configuring HTTPS and HSTS for Secure Web Applications</p>
+    </footer>
+</body>
+</html>
