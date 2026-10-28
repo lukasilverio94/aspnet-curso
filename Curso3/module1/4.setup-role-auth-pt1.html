@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Implementing Role-Based Authorization in ASP.NET Core</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5em;
+            color: #333;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 1em;
+            overflow-x: auto;
+            border-radius: 4px;
+            border-left: 4px solid #512bd4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+        .skip-link:focus {
+            position: static;
+            width: auto;
+            height: auto;
+            margin: 10px;
+            padding: 10px;
+            background: #fff;
+            border: 2px solid #000;
+        }
+        h1 {
+            color: #512bd4;
+            border-bottom: 3px solid #512bd4;
+            padding-bottom: 0.3em;
+        }
+        h2 {
+            color: #512bd4;
+            margin-top: 1.5em;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 0.3em;
+        }
+        h3 {
+            color: #6b3fc7;
+            margin-top: 1.2em;
+        }
+        h4 {
+            color: #7c52cc;
+            margin-top: 1em;
+        }
+        .note {
+            background-color: #f0e6ff;
+            border-left: 4px solid #512bd4;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        .important {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        .file-path {
+            background-color: #e8f4f8;
+            padding: 0.5em;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 0.5em 0;
+        }
+        .authorization-level {
+            background-color: #fafafa;
+            padding: 1em;
+            border-radius: 4px;
+            margin: 1em 0;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <header role="banner">
+        <h1>Implementing Role-Based Authorization in ASP.NET Core</h1>
+    </header>
+
+    <main id="main-content" role="main">
+        <section aria-labelledby="introduction">
+            <h2 id="introduction">Introduction</h2>
+            <p>This tutorial demonstrates how to implement role-based authorization in an ASP.NET Core application. You'll learn how to create user roles, assign users to those roles, and protect your controllers and actions so that only authorized users can access them.</p>
+        </section>
+
+        <section aria-labelledby="user-roles">
+            <h2 id="user-roles">Setting Up User Roles</h2>
+            <p>The first step in implementing role-based authorization is to create a custom user class that extends ASP.NET Core Identity's user management capabilities.</p>
+
+            <h3>Creating the Application User Class</h3>
+            <p class="file-path">File: Models/ApplicationUser.cs</p>
+            
+            <p>Create a new file in the Models folder named <code>ApplicationUser.cs</code>:</p>
+            
+            <pre><code class="language-csharp">using Microsoft.AspNetCore.Identity;
+
+namespace YourApplication.Models
+{
+    public class ApplicationUser : IdentityUser
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+    }
+}</code></pre>
+
+            <div class="note">
+                <strong>Key Points:</strong>
+                <ul>
+                    <li>This class extends <code>IdentityUser</code>, which provides built-in support for roles and claims</li>
+                    <li>Additional properties like <code>FirstName</code> and <code>LastName</code> can be added for extra user information</li>
+                    <li>The <code>IdentityUser</code> base class includes properties for email, username, password hash, and role associations</li>
+                </ul>
+            </div>
+        </section>
+
+        <section aria-labelledby="database-context">
+            <h2 id="database-context">Creating the Database Context</h2>
+            <p>The database context manages the connection between your application and the database, including all identity-related tables.</p>
+
+            <h3>Setting Up ApplicationDbContext</h3>
+            <p class="file-path">File: Data/ApplicationDbContext.cs</p>
+            
+            <p>Create a new file in the Data folder named <code>ApplicationDbContext.cs</code>:</p>
+            
+            <pre><code class="language-csharp">using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using YourApplication.Models;
+
+namespace YourApplication.Data
+{
+    public class ApplicationDbContext : IdentityDbContext&lt;ApplicationUser&gt;
+    {
+        public ApplicationDbContext(DbContextOptions&lt;ApplicationDbContext&gt; options)
+            : base(options)
+        {
+        }
+    }
+}</code></pre>
+
+            <div class="note">
+                <strong>What This Does:</strong>
+                <ul>
+                    <li>Inherits from <code>IdentityDbContext&lt;ApplicationUser&gt;</code> with your custom user class</li>
+                    <li>Automatically sets up all necessary tables for user management, roles, and claims</li>
+                    <li>Provides database access for identity operations like user creation, role assignment, and authentication</li>
+                </ul>
+            </div>
+        </section>
+
+        <section aria-labelledby="service-configuration">
+            <h2 id="service-configuration">Configuring Services in Program.cs</h2>
+            <p>The services must be configured to enable Entity Framework, ASP.NET Core Identity, and role-based authorization.</p>
+
+            <h3>Database and Identity Configuration</h3>
+            <p class="file-path">File: Program.cs</p>
+            
+            <p>Locate the services configuration section and add the following:</p>
+            
+            <pre><code class="language-csharp">// Add DbContext with SQL Server
+builder.Services.AddDbContext&lt;ApplicationDbContext&gt;(options =&gt;
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Configure ASP.NET Core Identity
+builder.Services.AddIdentity&lt;ApplicationUser, IdentityRole&gt;(options =&gt;
+{
+    // Password requirements
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 6;
+})
+.AddEntityFrameworkStores&lt;ApplicationDbContext&gt;()
+.AddDefaultTokenProviders();</code></pre>
+
+            <h4>Configuration Breakdown:</h4>
+            <dl>
+                <dt>AddDbContext</dt>
+                <dd>Configures Entity Framework Core with SQL Server as the database provider</dd>
+
+                <dt>AddIdentity&lt;ApplicationUser, IdentityRole&gt;</dt>
+                <dd>Sets up ASP.NET Core Identity with your custom <code>ApplicationUser</code> class and the default <code>IdentityRole</code> for role management</dd>
+
+                <dt>Password Options</dt>
+                <dd>Defines password complexity requirements for user accounts</dd>
+
+                <dt>AddEntityFrameworkStores</dt>
+                <dd>Connects Identity to your database context for data persistence</dd>
+
+                <dt>AddDefaultTokenProviders</dt>
+                <dd>Enables token generation for password resets and email confirmation</dd>
+            </dl>
+        </section>
+
+        <section aria-labelledby="middleware-configuration">
+            <h2 id="middleware-configuration">Adding Authentication and Authorization Middleware</h2>
+            <p>Middleware components must be added in the correct order for proper security functionality.</p>
+
+            <h3>Middleware Setup</h3>
+            <p>In the middleware configuration section of <code>Program.cs</code>, add the following before the authorization middleware:</p>
+            
+            <pre><code class="language-csharp">// Other middleware...
+
+app.UseAuthentication();  // Must come before UseAuthorization
+app.UseAuthorization();
+
+// Other middleware...</code></pre>
+
+            <div class="important">
+                <strong>Order Matters:</strong> The middleware components must be in the correct order:
+                <ol>
+                    <li><code>UseAuthentication()</code> - Identifies who the user is</li>
+                    <li><code>UseAuthorization()</code> - Checks if the user has permission to access resources</li>
+                </ol>
+                <p>Authentication must come before authorization so the system can identify users before checking their permissions.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="admin-controller">
+            <h2 id="admin-controller">Creating an Admin Controller</h2>
+            <p>This controller demonstrates class-level role-based authorization, where all actions require admin privileges.</p>
+
+            <h3>AdminController Implementation</h3>
+            <p class="file-path">File: Controllers/AdminController.cs</p>
+            
+            <pre><code class="language-csharp">using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace YourApplication.Controllers
+{
+    [Authorize(Roles = "Admin")]
+    public class AdminController : Controller
+    {
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        public IActionResult ManageUsers()
+        {
+            return View();
+        }
+    }
+}</code></pre>
+
+            <h3>Authorization Behavior</h3>
+            <div class="authorization-level">
+                <h4>Class-Level Authorization</h4>
+                <p>The <code>[Authorize(Roles = "Admin")]</code> attribute at the class level means:</p>
+                <ul>
+                    <li>All actions in this controller require the user to be authenticated</li>
+                    <li>The authenticated user must be in the "Admin" role</li>
+                    <li>Any user not in the Admin role will receive a 403 Forbidden response</li>
+                    <li>Unauthenticated users will be redirected to the login page</li>
+                </ul>
+            </div>
+
+            <h4>Controller Actions</h4>
+            <dl>
+                <dt>Index()</dt>
+                <dd>Main admin dashboard - requires Admin role (inherited from class-level attribute)</dd>
+
+                <dt>ManageUsers()</dt>
+                <dd>User management functionality - requires Admin role (inherited from class-level attribute)</dd>
+            </dl>
+        </section>
+
+        <section aria-labelledby="manager-controller">
+            <h2 id="manager-controller">Creating a Manager Controller</h2>
+            <p>This controller demonstrates action-level authorization with multiple roles, providing more granular control over access.</p>
+
+            <h3>ManagerController Implementation</h3>
+            <p class="file-path">File: Controllers/ManagerController.cs</p>
+            
+            <pre><code class="language-csharp">using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace YourApplication.Controllers
+{
+    public class ManagerController : Controller
+    {
+        [Authorize(Roles = "Manager,Admin")]
+        public IActionResult Dashboard()
+        {
+            return View();
+        }
+
+        [Authorize(Roles = "Admin")]
+        public IActionResult AdminOnly()
+        {
+            return View();
+        }
+
+        public IActionResult PublicAction()
+        {
+            return View();
+        }
+    }
+}</code></pre>
+
+            <h3>Action-Level Authorization</h3>
+            <div class="authorization-level">
+                <h4>Multiple Authorization Levels</h4>
+                <p>This controller demonstrates different authorization approaches:</p>
+                
+                <h5>1. Multiple Roles (Dashboard action)</h5>
+                <p><code>[Authorize(Roles = "Manager,Admin")]</code></p>
+                <ul>
+                    <li>Allows both Manager and Admin roles</li>
+                    <li>Uses a comma-separated list of role names</li>
+                    <li>User must be in at least one of the specified roles</li>
+                </ul>
+
+                <h5>2. Single Role (AdminOnly action)</h5>
+                <p><code>[Authorize(Roles = "Admin")]</code></p>
+                <ul>
+                    <li>Requires only the Admin role</li>
+                    <li>Managers cannot access this action</li>
+                    <li>Demonstrates action-level override of controller settings</li>
+                </ul>
+
+                <h5>3. No Authorization (PublicAction)</h5>
+                <p>No <code>[Authorize]</code> attribute</p>
+                <ul>
+                    <li>No authentication or authorization required</li>
+                    <li>Accessible to all users, including anonymous visitors</li>
+                    <li>Useful for public-facing features within a controller</li>
+                </ul>
+            </div>
+        </section>
+
+        <section aria-labelledby="authorization-comparison">
+            <h2 id="authorization-comparison">Class-Level vs Action-Level Authorization</h2>
+            
+            <h3>When to Use Each Approach</h3>
+            
+            <h4>Class-Level Authorization</h4>
+            <div class="note">
+                <strong>Use When:</strong>
+                <ul>
+                    <li>All actions in the controller require the same role(s)</li>
+                    <li>The controller represents a specific administrative area</li>
+                    <li>You want consistent security across all endpoints</li>
+                </ul>
+                <strong>Example:</strong> AdminController where all actions require Admin role
+            </div>
+
+            <h4>Action-Level Authorization</h4>
+            <div class="note">
+                <strong>Use When:</strong>
+                <ul>
+                    <li>Different actions require different authorization levels</li>
+                    <li>Some actions are public while others are restricted</li>
+                    <li>You need granular control over access permissions</li>
+                </ul>
+                <strong>Example:</strong> ManagerController with mixed public and restricted actions
+            </div>
+
+            <h3>Combining Both Approaches</h3>
+            <p>You can combine class-level and action-level authorization:</p>
+            <pre><code class="language-csharp">[Authorize] // Class-level: requires authentication
+public class MixedController : Controller
+{
+    public IActionResult Index() 
+    { 
+        // Requires authentication (from class)
+        return View(); 
+    }
+
+    [Authorize(Roles = "Admin")] // Action-level: requires Admin role
+    public IActionResult AdminAction() 
+    { 
+        return View(); 
+    }
+
+    [AllowAnonymous] // Overrides class-level authorization
+    public IActionResult Public() 
+    { 
+        return View(); 
+    }
+}</code></pre>
+        </section>
+
+        <section aria-labelledby="key-concepts">
+            <h2 id="key-concepts">Key Authorization Concepts</h2>
+            
+            <dl>
+                <dt>Authentication</dt>
+                <dd>The process of identifying who the user is. This happens through login credentials, tokens, or other identity verification methods.</dd>
+
+                <dt>Authorization</dt>
+                <dd>The process of determining what an authenticated user is allowed to do. This is where roles and permissions come into play.</dd>
+
+                <dt>Role</dt>
+                <dd>A named group that defines a set of permissions. Users can be assigned to one or more roles (e.g., Admin, Manager, User).</dd>
+
+                <dt>[Authorize] Attribute</dt>
+                <dd>A filter that restricts access to controllers or actions based on authentication and role requirements.</dd>
+
+                <dt>IdentityUser</dt>
+                <dd>The base class provided by ASP.NET Core Identity for user accounts. It includes properties for username, email, password, and role associations.</dd>
+
+                <dt>IdentityRole</dt>
+                <dd>The default role class that represents user roles in the system.</dd>
+
+                <dt>IdentityDbContext</dt>
+                <dd>A specialized Entity Framework DbContext that includes all tables needed for ASP.NET Core Identity (users, roles, claims, etc.).</dd>
+
+                <dt>[AllowAnonymous] Attribute</dt>
+                <dd>Overrides authorization requirements, allowing unauthenticated access to specific actions even when the controller requires authentication.</dd>
+            </dl>
+        </section>
+
+        <section aria-labelledby="implementation-steps">
+            <h2 id="implementation-steps">Implementation Summary</h2>
+            <p>To implement role-based authorization in ASP.NET Core:</p>
+            
+            <ol>
+                <li><strong>Create ApplicationUser Class:</strong> Extend IdentityUser with custom properties</li>
+                <li><strong>Create ApplicationDbContext:</strong> Inherit from IdentityDbContext to manage identity data</li>
+                <li><strong>Configure Services:</strong> Add database context, Identity services, and password requirements in Program.cs</li>
+                <li><strong>Add Middleware:</strong> Include UseAuthentication() before UseAuthorization() in the request pipeline</li>
+                <li><strong>Apply Authorization:</strong> Use [Authorize(Roles = "RoleName")] attributes on controllers or actions</li>
+                <li><strong>Create Roles:</strong> Programmatically create roles and assign users to them (covered in role management tutorials)</li>
+                <li><strong>Test Security:</strong> Verify that users without proper roles cannot access protected resources</li>
+            </ol>
+        </section>
+
+        <section aria-labelledby="next-steps">
+            <h2 id="next-steps">Next Steps</h2>
+            <p>After implementing basic role-based authorization, consider these additional topics:</p>
+            
+            <ul>
+                <li><strong>Role Management:</strong> Create interfaces for administrators to create roles and assign users</li>
+                <li><strong>Claims-Based Authorization:</strong> Implement more granular permissions using claims</li>
+                <li><strong>Policy-Based Authorization:</strong> Define custom authorization policies for complex scenarios</li>
+                <li><strong>Resource-Based Authorization:</strong> Authorize based on the specific resource being accessed</li>
+                <li><strong>Custom Authorization Handlers:</strong> Create sophisticated authorization logic beyond simple role checks</li>
+                <li><strong>Two-Factor Authentication:</strong> Add an extra layer of security to user accounts</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="conclusion">
+            <h2 id="conclusion">Conclusion</h2>
+            <p>Role-based authorization is a fundamental security feature in ASP.NET Core applications. By creating custom user classes, configuring ASP.NET Core Identity, and applying authorization attributes strategically, you can:</p>
+            
+            <ul>
+                <li>Control access to different parts of your application</li>
+                <li>Protect sensitive functionality from unauthorized users</li>
+                <li>Implement sophisticated permission systems</li>
+                <li>Maintain clear separation between user privilege levels</li>
+            </ul>
+
+            <p>The combination of class-level and action-level authorization provides flexibility to secure your application according to your specific business requirements.</p>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <p>ASP.NET Core Tutorial - Implementing Role-Based Authorization</p>
+    </footer>
+</body>
+</html>

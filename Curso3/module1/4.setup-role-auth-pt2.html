@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Role Management and Testing in ASP.NET Core</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5em;
+            color: #333;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 1em;
+            overflow-x: auto;
+            border-radius: 4px;
+            border-left: 4px solid #512bd4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+        .skip-link:focus {
+            position: static;
+            width: auto;
+            height: auto;
+            margin: 10px;
+            padding: 10px;
+            background: #fff;
+            border: 2px solid #000;
+        }
+        h1 {
+            color: #512bd4;
+            border-bottom: 3px solid #512bd4;
+            padding-bottom: 0.3em;
+        }
+        h2 {
+            color: #512bd4;
+            margin-top: 1.5em;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 0.3em;
+        }
+        h3 {
+            color: #6b3fc7;
+            margin-top: 1.2em;
+        }
+        h4 {
+            color: #7c52cc;
+            margin-top: 1em;
+        }
+        .note {
+            background-color: #f0e6ff;
+            border-left: 4px solid #512bd4;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        .file-path {
+            background-color: #e8f4f8;
+            padding: 0.5em;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 0.5em 0;
+        }
+        .terminal-command {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 1em;
+            border-radius: 4px;
+            margin: 1em 0;
+            font-family: monospace;
+        }
+        .troubleshooting {
+            background-color: #fff9e6;
+            border: 2px solid #ffc107;
+            border-radius: 4px;
+            padding: 1em;
+            margin: 1em 0;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <header role="banner">
+        <h1>Role Management and Testing in ASP.NET Core</h1>
+    </header>
+
+    <main id="main-content" role="main">
+        <section aria-labelledby="introduction">
+            <h2 id="introduction">Introduction</h2>
+            <p>This tutorial demonstrates how to create role management functionality in ASP.NET Core, including creating roles, assigning users to roles, and testing the role-based authorization system. You'll also learn how to troubleshoot common errors that occur during implementation.</p>
+        </section>
+
+        <section aria-labelledby="account-controller">
+            <h2 id="account-controller">Creating the Account Controller</h2>
+            <p>The Account Controller manages user registration, role creation, and role assignment functionality.</p>
+
+            <h3>AccountController Implementation</h3>
+            <p class="file-path">File: Controllers/AccountController.cs</p>
+            
+            <pre><code class="language-csharp">using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using YourApplication.Models;
+
+namespace YourApplication.Controllers
+{
+    public class AccountController : Controller
+    {
+        private readonly UserManager&lt;ApplicationUser&gt; _userManager;
+        private readonly RoleManager&lt;IdentityRole&gt; _roleManager;
+
+        public AccountController(
+            UserManager&lt;ApplicationUser&gt; userManager,
+            RoleManager&lt;IdentityRole&gt; roleManager)
+        {
+            _userManager = userManager;
+            _roleManager = roleManager;
+        }
+
+        [Authorize(Roles = "Admin")]
+        public async Task&lt;IActionResult&gt; CreateRoles()
+        {
+            // Create Admin role
+            if (!await _roleManager.RoleExistsAsync("Admin"))
+            {
+                await _roleManager.CreateAsync(new IdentityRole("Admin"));
+            }
+
+            // Create Manager role
+            if (!await _roleManager.RoleExistsAsync("Manager"))
+            {
+                await _roleManager.CreateAsync(new IdentityRole("Manager"));
+            }
+
+            // Create User role
+            if (!await _roleManager.RoleExistsAsync("User"))
+            {
+                await _roleManager.CreateAsync(new IdentityRole("User"));
+            }
+
+            return View();
+        }
+
+        [Authorize(Roles = "Admin")]
+        public async Task&lt;IActionResult&gt; AssignRole(string userId, string roleName)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            
+            if (user != null && await _roleManager.RoleExistsAsync(roleName))
+            {
+                await _userManager.AddToRoleAsync(user, roleName);
+            }
+
+            return RedirectToAction("Index");
+        }
+    }
+}</code></pre>
+
+            <h3>Controller Components Explained</h3>
+            
+            <h4>Dependency Injection</h4>
+            <p>The constructor injects two key services:</p>
+            <dl>
+                <dt>UserManager&lt;ApplicationUser&gt;</dt>
+                <dd>Manages user accounts - creating users, finding users by ID, and assigning roles to users</dd>
+
+                <dt>RoleManager&lt;IdentityRole&gt;</dt>
+                <dd>Manages roles - creating roles, checking if roles exist, and deleting roles</dd>
+            </dl>
+
+            <h4>CreateRoles Method</h4>
+            <div class="note">
+                <strong>Purpose:</strong> Creates the three basic roles in the system
+                <ul>
+                    <li><strong>Admin:</strong> Full administrative access to all features</li>
+                    <li><strong>Manager:</strong> Mid-level access for management functions</li>
+                    <li><strong>User:</strong> Basic user access to standard features</li>
+                </ul>
+                <p>The method checks if each role exists before creating it to avoid duplicate role errors. This action requires the Admin role to execute.</p>
+            </div>
+
+            <h4>AssignRole Method</h4>
+            <div class="note">
+                <strong>Purpose:</strong> Assigns a specific user to a specific role
+                <p><strong>Parameters:</strong></p>
+                <ul>
+                    <li><code>userId</code>: The unique identifier of the user</li>
+                    <li><code>roleName</code>: The name of the role to assign</li>
+                </ul>
+                <p>The method finds the user by ID, verifies the role exists, and then adds the user to that role. This action also requires the Admin role.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="database-migration">
+            <h2 id="database-migration">Creating Database Migrations</h2>
+            <p>Entity Framework migrations create and update the database schema to support Identity tables.</p>
+
+            <h3>Step 1: Add Migration</h3>
+            <p>Open the terminal and create a new migration:</p>
+            <div class="terminal-command">
+                <code>dotnet ef migrations add InitialCreate</code>
+            </div>
+
+            <p>This command generates migration files that define the database schema changes, including tables for:</p>
+            <ul>
+                <li>AspNetUsers (user accounts)</li>
+                <li>AspNetRoles (role definitions)</li>
+                <li>AspNetUserRoles (user-role assignments)</li>
+                <li>AspNetUserClaims (user claims)</li>
+                <li>AspNetRoleClaims (role claims)</li>
+            </ul>
+
+            <h3>Step 2: Update Database</h3>
+            <p>Apply the migration to create the database:</p>
+            <div class="terminal-command">
+                <code>dotnet ef database update</code>
+            </div>
+
+            <div class="success">
+                <strong>Result:</strong> The database has been created with all the necessary Identity tables for users, roles, and user-role relationships.
+            </div>
+        </section>
+
+        <section aria-labelledby="testing">
+            <h2 id="testing">Testing Role-Based Authorization</h2>
+            <p>After setting up the database, test the application to verify that role-based authorization is working correctly.</p>
+
+            <h3>Running the Application</h3>
+            <p>Start the application from the terminal:</p>
+            <div class="terminal-command">
+                <code>dotnet run</code>
+            </div>
+
+            <h3>Testing Authorization Behavior</h3>
+            <p>Once the application is running, test the authorization system by navigating to protected routes.</p>
+
+            <h4>Test 1: Accessing Admin Controller Without Authentication</h4>
+            <p>Navigate to: <code>/admin</code></p>
+            
+            <div class="note">
+                <strong>Expected Behavior:</strong> The application redirects to the login page because the AdminController requires the Admin role, and you are not currently authenticated.
+                <p>This is the correct behavior - unauthenticated users cannot access protected resources and are automatically redirected to login.</p>
+            </div>
+
+            <h4>Test 2: Accessing Role Creation Without Admin Role</h4>
+            <p>Navigate to: <code>/account/createroles</code></p>
+            
+            <div class="note">
+                <strong>Expected Behavior:</strong> The application redirects to the login page because the CreateRoles action requires the Admin role authorization.
+                <p>Even after logging in, users without the Admin role will receive a 403 Forbidden error when trying to access this action.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="troubleshooting">
+            <h2 id="troubleshooting">Troubleshooting Common Errors</h2>
+            <p>During implementation and testing, you may encounter several common errors. Here's how to resolve them.</p>
+
+            <h3>Error 1: Stray MapRazorPages Call</h3>
+            <div class="error">
+                <strong>Error Message:</strong> Build error on line 47 in Program.cs
+                <p><strong>Cause:</strong> An extra <code>app.MapRazorPages()</code> call exists in the middleware configuration</p>
+            </div>
+
+            <h4>Solution</h4>
+            <p class="file-path">File: Program.cs</p>
+            <pre><code class="language-csharp">// Remove this line if it appears twice:
+// app.MapRazorPages(); // DELETE this duplicate
+
+// Keep only the necessary routing:
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");</code></pre>
+
+            <p>After removing the duplicate line, save the file and rebuild the application.</p>
+
+            <h3>Error 2: IdentityUser Type Mismatch in Views</h3>
+            <div class="error">
+                <strong>Error Message:</strong> Type mismatch error in _LoginPartial.cshtml
+                <p><strong>Cause:</strong> The view is using <code>IdentityUser</code> instead of your custom <code>ApplicationUser</code> class</p>
+            </div>
+
+            <h4>Solution</h4>
+            <p class="file-path">File: Views/Shared/_LoginPartial.cshtml</p>
+            <pre><code class="language-cshtml">@using Microsoft.AspNetCore.Identity
+@using YourApplication.Models
+@inject SignInManager&lt;ApplicationUser&gt; SignInManager
+@inject UserManager&lt;ApplicationUser&gt; UserManager
+@inject RoleManager&lt;IdentityRole&gt; RoleManager
+
+@if (SignInManager.IsSignedIn(User))
+{
+    &lt;form class="form-inline" asp-area="" asp-controller="Account" asp-action="Logout"&gt;
+        &lt;button type="submit" class="nav-link btn btn-link"&gt;Logout&lt;/button&gt;
+    &lt;/form&gt;
+}
+else
+{
+    &lt;a class="nav-link" asp-area="" asp-controller="Account" asp-action="Register"&gt;Register&lt;/a&gt;
+    &lt;a class="nav-link" asp-area="" asp-controller="Account" asp-action="Login"&gt;Login&lt;/a&gt;
+}</code></pre>
+
+            <div class="note">
+                <strong>Key Changes:</strong>
+                <ul>
+                    <li>Change <code>IdentityUser</code> to <code>ApplicationUser</code> in all type parameters</li>
+                    <li>Add <code>@using YourApplication.Models</code> to import your custom user class</li>
+                    <li>Inject <code>RoleManager&lt;IdentityRole&gt;</code> for role management functionality</li>
+                </ul>
+            </div>
+
+            <h3>Error 3: Missing Route Configuration</h3>
+            <div class="error">
+                <strong>Symptom:</strong> 404 errors when navigating to Admin or Account controllers
+                <p><strong>Cause:</strong> Routes are not properly configured in Program.cs</p>
+            </div>
+
+            <h4>Solution</h4>
+            <p class="file-path">File: Program.cs</p>
+            <pre><code class="language-csharp">app.MapControllerRoute(
+    name: "admin",
+    pattern: "admin/{action=Index}/{id?}",
+    defaults: new { controller = "Admin" });
+
+app.MapControllerRoute(
+    name: "account",
+    pattern: "account/{action=Index}/{id?}",
+    defaults: new { controller = "Account" });
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");</code></pre>
+
+            <p>Save the Program.cs file, rebuild the application, and restart it.</p>
+
+            <h3>General Troubleshooting Steps</h3>
+            <div class="troubleshooting">
+                <h4>When You Encounter Errors:</h4>
+                <ol>
+                    <li><strong>Read the error message carefully</strong> - it usually indicates the file and line number</li>
+                    <li><strong>Check file locations</strong> - ensure using statements match your project structure</li>
+                    <li><strong>Verify type consistency</strong> - use ApplicationUser instead of IdentityUser throughout</li>
+                    <li><strong>Clean and rebuild</strong> - sometimes cached build artifacts cause issues</li>
+                    <li><strong>Restart the application</strong> - changes to Program.cs require a restart</li>
+                </ol>
+            </div>
+        </section>
+
+        <section aria-labelledby="complete-workflow">
+            <h2 id="complete-workflow">Complete Testing Workflow</h2>
+            
+            <h3>Step-by-Step Testing Process</h3>
+            <ol>
+                <li><strong>Build the application:</strong> <code>dotnet build</code></li>
+                <li><strong>Run the application:</strong> <code>dotnet run</code></li>
+                <li><strong>Open browser:</strong> Navigate to <code>http://localhost:5000</code> (or the displayed URL)</li>
+                <li><strong>Test unauthenticated access:</strong> Try to access <code>/admin</code> - should redirect to login</li>
+                <li><strong>Create roles:</strong> Navigate to <code>/account/createroles</code> (after logging in as Admin)</li>
+                <li><strong>Verify roles created:</strong> Check the database AspNetRoles table</li>
+                <li><strong>Assign roles to users:</strong> Use the AssignRole action or create an admin interface</li>
+                <li><strong>Test role-based access:</strong> Log in with different role accounts and verify access</li>
+            </ol>
+        </section>
+
+        <section aria-labelledby="key-components">
+            <h2 id="key-components">Key Components of Role Management</h2>
+            
+            <h3>Authorization Levels</h3>
+            <dl>
+                <dt>Controller-Level Authorization</dt>
+                <dd>Applying <code>[Authorize(Roles = "RoleName")]</code> at the class level protects all actions in that controller. Used for AdminController where all actions require admin privileges.</dd>
+
+                <dt>Action-Level Authorization</dt>
+                <dd>Applying authorization attributes to individual actions allows for granular control. Used for controllers with mixed access requirements.</dd>
+
+                <dt>No Authorization</dt>
+                <dd>Actions without authorization attributes are accessible to all users, including anonymous visitors.</dd>
+            </dl>
+
+            <h3>Role Management Services</h3>
+            <dl>
+                <dt>UserManager&lt;ApplicationUser&gt;</dt>
+                <dd>
+                    Provides methods for managing users:
+                    <ul>
+                        <li><code>CreateAsync()</code> - Create new users</li>
+                        <li><code>FindByIdAsync()</code> - Find users by ID</li>
+                        <li><code>FindByEmailAsync()</code> - Find users by email</li>
+                        <li><code>AddToRoleAsync()</code> - Assign users to roles</li>
+                        <li><code>RemoveFromRoleAsync()</code> - Remove users from roles</li>
+                        <li><code>IsInRoleAsync()</code> - Check if user is in a specific role</li>
+                    </ul>
+                </dd>
+
+                <dt>RoleManager&lt;IdentityRole&gt;</dt>
+                <dd>
+                    Provides methods for managing roles:
+                    <ul>
+                        <li><code>CreateAsync()</code> - Create new roles</li>
+                        <li><code>RoleExistsAsync()</code> - Check if a role exists</li>
+                        <li><code>DeleteAsync()</code> - Delete roles</li>
+                        <li><code>FindByNameAsync()</code> - Find roles by name</li>
+                    </ul>
+                </dd>
+            </dl>
+        </section>
+
+        <section aria-labelledby="production-considerations">
+            <h2 id="production-considerations">Production Considerations</h2>
+            
+            <h3>Additional Features Needed for Production</h3>
+            <div class="warning">
+                <p>The example code demonstrates core concepts but requires additional implementation for production use:</p>
+            </div>
+
+            <h4>1. User Registration</h4>
+            <ul>
+                <li>Create registration forms with proper validation</li>
+                <li>Implement email confirmation</li>
+                <li>Add password strength requirements</li>
+                <li>Include CAPTCHA for bot prevention</li>
+            </ul>
+
+            <h4>2. Login Functionality</h4>
+            <ul>
+                <li>Implement secure login with proper password hashing (handled by Identity)</li>
+                <li>Add "Remember Me" functionality</li>
+                <li>Implement account lockout after failed attempts</li>
+                <li>Add two-factor authentication support</li>
+            </ul>
+
+            <h4>3. Administrative Interface</h4>
+            <ul>
+                <li>Create user management pages for admins</li>
+                <li>Build role assignment interfaces</li>
+                <li>Implement user search and filtering</li>
+                <li>Add audit logging for security events</li>
+                <li>Create role permission management</li>
+            </ul>
+
+            <h4>4. Security Enhancements</h4>
+            <ul>
+                <li>Implement proper error handling without exposing sensitive information</li>
+                <li>Add rate limiting for authentication endpoints</li>
+                <li>Use HTTPS in production</li>
+                <li>Implement Content Security Policy headers</li>
+                <li>Add logging and monitoring for security events</li>
+            </ul>
+
+            <h4>5. User Experience</h4>
+            <ul>
+                <li>Create custom access denied pages</li>
+                <li>Implement friendly error messages</li>
+                <li>Add password reset functionality</li>
+                <li>Create email confirmation workflows</li>
+                <li>Implement profile management features</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="conclusion">
+            <h2 id="conclusion">Conclusion</h2>
+            <p>You have now learned how to implement comprehensive role management in ASP.NET Core, including:</p>
+            
+            <ul>
+                <li><strong>Creating an Account Controller</strong> with role creation and assignment methods</li>
+                <li><strong>Using UserManager and RoleManager</strong> to manage users and roles programmatically</li>
+                <li><strong>Creating database migrations</strong> to set up Identity tables</li>
+                <li><strong>Testing authorization behavior</strong> to verify that role-based security works correctly</li>
+                <li><strong>Troubleshooting common errors</strong> that occur during implementation</li>
+            </ul>
+
+            <h3>Key Takeaways</h3>
+            <div class="note">
+                <ol>
+                    <li><strong>Configure Identity Services:</strong> Set up ASP.NET Core Identity in Program.cs with your custom ApplicationUser class</li>
+                    <li><strong>Apply Authorization Strategically:</strong> Use controller-level authorization for blanket protection or action-level for granular control</li>
+                    <li><strong>Manage Roles Programmatically:</strong> Use RoleManager to create roles and UserManager to assign users</li>
+                    <li><strong>Test Thoroughly:</strong> Verify that unauthorized users cannot access protected resources</li>
+                    <li><strong>Plan for Production:</strong> Implement additional features like registration, login, and admin interfaces for real-world use</li>
+                </ol>
+            </div>
+
+            <p>Role-based authorization is a fundamental security feature that protects your application by ensuring users can only access the features and data appropriate for their role. Combined with proper authentication and additional security measures, it provides a robust foundation for secure ASP.NET Core applications.</p>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <p>ASP.NET Core Tutorial - Role Management, Testing, and Troubleshooting</p>
+    </footer>
+</body>
+</html>
