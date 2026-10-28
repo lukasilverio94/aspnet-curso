@@ -2,6 +2,11 @@ using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenLocalhost(5294); // HTTP Only
+});
+
 // Add services to the container.
 builder.Services.AddRazorPages();
 
@@ -31,6 +36,20 @@ builder.Services.AddHsts(options =>
 });
 
 var app = builder.Build();
+
+/*
+Custom middlewares optmization
+*/
+app.Use(async (context, next) =>
+{
+    if (context.Request.Query["secure"] != "true")
+    {
+        context.Response.StatusCode = 400; // blank 1: set status code for blocked requests.
+        await context.Response.WriteAsync("Simulated HTTPS Required");
+        return;
+    }
+    await next();
+});
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
