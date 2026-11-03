@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="MathApp.API/MathApp.API.csproj" />
+  <Project Path="MathApp.Tests/MathApp.Tests.csproj" />
+</Solution>
