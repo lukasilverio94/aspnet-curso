@@ -1,7 +1,16 @@
+using Microsoft.EntityFrameworkCore;
+using TaskManagement.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+// Check for connection string from environment variable
+var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING")
+    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
+builder.Services.AddDbContext<TaskContext>(options =>
+    options.UseSqlServer(connectionString));
+
+
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
@@ -10,6 +19,25 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+}
+
+// Production-specific optimizations
+if (app.Environment.IsProduction())
+{
+    // Enable response compression
+    app.UseResponseCompression();
+
+    // Enable HTTPS redirection
+    app.UseHttpsRedirection();
+
+    // Add security headers
+    app.Use(async (context, next) =>
+   {
+       context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+       context.Response.Headers["X-Frame-Options"] = "DENY";
+       context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
+       await next();
+   });
 }
 
 app.UseHttpsRedirection();
@@ -21,7 +49,7 @@ var summaries = new[]
 
 app.MapGet("/weatherforecast", () =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
+    var forecast = Enumerable.Range(1, 5).Select(index =>
         new WeatherForecast
         (
             DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
