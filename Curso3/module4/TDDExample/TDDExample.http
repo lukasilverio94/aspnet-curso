@@ -1,0 +1,6 @@
+@TDDExample_HostAddress = http://localhost:5283
+
+GET {{TDDExample_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
