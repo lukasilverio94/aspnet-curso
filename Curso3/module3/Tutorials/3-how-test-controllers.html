@@ -1,0 +1,500 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit Testing ASP.NET Core Controllers - Tutorial Transcript</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2em;
+            color: #333;
+        }
+        
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+        
+        .skip-link:focus {
+            position: static;
+            width: auto;
+            height: auto;
+            margin: 10px;
+            padding: 10px;
+            background: #fff;
+            border: 2px solid #000;
+        }
+        
+        header {
+            border-bottom: 3px solid #0078d4;
+            padding-bottom: 1em;
+            margin-bottom: 2em;
+        }
+        
+        h1 {
+            color: #0078d4;
+            margin-bottom: 0.5em;
+        }
+        
+        h2 {
+            color: #1a1a1a;
+            margin-top: 2em;
+            padding-top: 1em;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        h3 {
+            color: #333;
+            margin-top: 1.5em;
+        }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2em;
+            margin: 2em 0;
+        }
+        
+        .narration-column {
+            background-color: #f8f9fa;
+            padding: 1.5em;
+            border-radius: 8px;
+            border-left: 4px solid #0078d4;
+        }
+        
+        .code-column {
+            background-color: #1e1e1e;
+            padding: 1.5em;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        
+        .narration-column h4 {
+            margin-top: 0;
+            color: #0078d4;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .code-column h4 {
+            margin-top: 0;
+            color: #4ec9b0;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        code {
+            background-color: #f5f5f5;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        pre {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1.5em;
+            overflow-x: auto;
+            border-radius: 6px;
+            margin: 1em 0;
+            line-height: 1.4;
+        }
+        
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+        }
+        
+        .keyword { color: #569cd6; }
+        .string { color: #ce9178; }
+        .comment { color: #6a9955; }
+        .type { color: #4ec9b0; }
+        .method { color: #dcdcaa; }
+        .property { color: #9cdcfe; }
+        
+        .concept-box {
+            background-color: #e7f3ff;
+            border-left: 4px solid #0078d4;
+            padding: 1em 1.5em;
+            margin: 1.5em 0;
+            border-radius: 4px;
+        }
+        
+        .concept-box h4 {
+            margin-top: 0;
+            color: #0078d4;
+        }
+        
+        .learning-objectives {
+            background-color: #f0f7ff;
+            padding: 1.5em;
+            border-radius: 8px;
+            margin: 2em 0;
+        }
+        
+        .learning-objectives ul {
+            margin: 0.5em 0;
+        }
+        
+        .learning-objectives li {
+            margin: 0.5em 0;
+        }
+        
+        dl {
+            margin: 1.5em 0;
+        }
+        
+        dt {
+            font-weight: bold;
+            color: #0078d4;
+            margin-top: 1em;
+        }
+        
+        dd {
+            margin-left: 2em;
+            margin-bottom: 0.5em;
+        }
+        
+        .step-indicator {
+            display: inline-block;
+            background-color: #0078d4;
+            color: white;
+            padding: 0.2em 0.6em;
+            border-radius: 3px;
+            font-weight: bold;
+            margin-right: 0.5em;
+        }
+        
+        footer {
+            margin-top: 3em;
+            padding-top: 2em;
+            border-top: 2px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            body {
+                padding: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <header role="banner">
+        <h1>Unit Testing ASP.NET Core Controllers and Business Services</h1>
+        <p>A comprehensive guide to writing effective unit tests with mocking and the Arrange-Act-Assert pattern</p>
+    </header>
+
+    <main id="main-content" role="main">
+        <section aria-labelledby="learning-objectives">
+            <div class="learning-objectives">
+                <h2 id="learning-objectives">Learning Objectives</h2>
+                <p>By the end of this tutorial, you will be able to:</p>
+                <ul>
+                    <li>Write effective unit tests for ASP.NET Core controllers</li>
+                    <li>Handle different action results in controller tests</li>
+                    <li>Use mocking to handle dependencies and isolate controller logic</li>
+                    <li>Verify error conditions and edge cases</li>
+                    <li>Apply the Arrange-Act-Assert (AAA) pattern for test organization</li>
+                </ul>
+            </div>
+        </section>
+
+        <section aria-labelledby="project-structure">
+            <h2 id="project-structure">Examining the Test Project Structure</h2>
+            
+            <div class="content-grid">
+                <div class="narration-column">
+                    <h4>Narration</h4>
+                    <p>Let's start by examining our test project structure. We have an ASP.NET Core application with a UserController that depends on a UserService for business logic.</p>
+                    <p>We're working with the UserController.cs file to show what we'll be testing. Our user controller contains GetUser and CreateUser action methods.</p>
+                    <p>Notice how the controller depends on our UserService through dependency injection. The constructor takes in the UserService via dependency injection, and the methods we'll be testing are GetUser and CreateUser.</p>
+                    <p>Because we're implementing a service pattern, the controller calls nested methods from our service.</p>
+                </div>
+                
+                <div class="code-column">
+                    <h4>UserController Structure</h4>
+                    <pre><code><span class="keyword">public class</span> <span class="type">UserController</span> : <span class="type">ControllerBase</span>
+{
+    <span class="keyword">private readonly</span> <span class="type">IUserService</span> _userService;
+    
+    <span class="keyword">public</span> <span class="method">UserController</span>(<span class="type">IUserService</span> <span class="property">userService</span>)
+    {
+        _userService = userService;
+    }
+    
+    <span class="keyword">public async</span> <span class="type">Task</span>&lt;<span class="type">IActionResult</span>&gt; <span class="method">GetUser</span>(<span class="keyword">int</span> <span class="property">id</span>)
+    {
+        <span class="comment">// Controller logic that calls service</span>
+        <span class="keyword">var</span> user = <span class="keyword">await</span> _userService.<span class="method">GetUserByIdAsync</span>(id);
+        <span class="keyword">return</span> <span class="method">Ok</span>(user);
+    }
+    
+    <span class="keyword">public async</span> <span class="type">Task</span>&lt;<span class="type">IActionResult</span>&gt; <span class="method">CreateUser</span>(<span class="type">User</span> <span class="property">user</span>)
+    {
+        <span class="comment">// Controller logic that calls service</span>
+        <span class="keyword">await</span> _userService.<span class="method">CreateUserAsync</span>(user);
+        <span class="keyword">return</span> <span class="method">CreatedAtAction</span>(<span class="keyword">nameof</span>(GetUser), user);
+    }
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="concept-box">
+                <h4>Key Concept: Dependency Injection in Controllers</h4>
+                <p>The UserController receives its IUserService dependency through constructor injection. This design pattern makes the controller testable because we can provide a mock implementation of the service during testing, allowing us to control its behavior and verify the controller logic in isolation.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="test-setup">
+            <h2 id="test-setup">Setting Up the Test Project</h2>
+            
+            <div class="content-grid">
+                <div class="narration-column">
+                    <h4>Narration</h4>
+                    <p>Now we're switching to our test project. We're selecting the test folder and opening the UserControllerTest file.</p>
+                    <p>Let me demonstrate the pattern by writing a test for the GetUser action. We're positioning the cursor at the end of the UserControllerTest class and typing our first test method.</p>
+                </div>
+                
+                <div class="code-column">
+                    <h4>Test Class Structure</h4>
+                    <pre><code><span class="keyword">public class</span> <span class="type">UserControllerTests</span>
+{
+    <span class="comment">// Test methods will be added here</span>
+}</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section aria-labelledby="writing-first-test">
+            <h2 id="writing-first-test">Writing Your First Unit Test</h2>
+
+            <h3>Test Method Declaration</h3>
+            
+            <div class="content-grid">
+                <div class="narration-column">
+                    <h4>Narration</h4>
+                    <p>We start by declaring our test method with the [Fact] attribute, which marks this as a test method for xUnit.</p>
+                    <p>The method name follows a clear naming convention: GetUser_WithValidId_ReturnsOkResult. This tells us what we're testing, under what conditions, and what we expect to happen.</p>
+                </div>
+                
+                <div class="code-column">
+                    <h4>Test Method Declaration</h4>
+                    <pre><code>[<span class="type">Fact</span>]
+<span class="keyword">public async</span> <span class="type">Task</span> <span class="method">GetUser_WithValidId_ReturnsOkResult</span>()
+{
+    <span class="comment">// Test implementation goes here</span>
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="concept-box">
+                <h4>Test Naming Convention</h4>
+                <p>The test name follows the pattern: MethodName_Scenario_ExpectedBehavior. This makes tests self-documenting and easier to understand when they fail. For example, "GetUser_WithValidId_ReturnsOkResult" immediately tells you this test verifies that calling GetUser with a valid ID returns an OK result.</p>
+            </div>
+
+            <h3>The Arrange Section</h3>
+            
+            <div class="content-grid">
+                <div class="narration-column">
+                    <h4>Narration</h4>
+                    <p>Now we'll implement the AAA pattern, starting with the Arrange section where we set up our test scenario.</p>
+                    <p>We create a test user ID and an expected user object with sample data including ID, name, and email.</p>
+                    <p>Next, we create a mock of the IUserService. This is crucial for testing the controller in isolation.</p>
+                    <p>We configure the mock service using the Setup method to specify that when GetUserByIdAsync is called with our test user ID, it should return our expected user asynchronously.</p>
+                    <p>This gives us complete control over what the service returns, allowing us to test the controller logic in isolation.</p>
+                    <p>Finally, we create an instance of the controller, passing in our mock service. Remember, our controller takes in the UserService via dependency injection.</p>
+                </div>
+                
+                <div class="code-column">
+                    <h4>Arrange Section Code</h4>
+                    <pre><code><span class="comment">// Arrange</span>
+<span class="keyword">var</span> userId = <span class="string">1</span>;
+<span class="keyword">var</span> expectedUser = <span class="keyword">new</span> <span class="type">User</span>
+{
+    Id = userId,
+    Name = <span class="string">"John Doe"</span>,
+    Email = <span class="string">"john@example.com"</span>
+};
+
+<span class="keyword">var</span> mockUserService = <span class="keyword">new</span> <span class="type">Mock</span>&lt;<span class="type">IUserService</span>&gt;();
+
+mockUserService
+    .<span class="method">Setup</span>(s =&gt; s.<span class="method">GetUserByIdAsync</span>(userId))
+    .<span class="method">ReturnsAsync</span>(expectedUser);
+
+<span class="keyword">var</span> controller = <span class="keyword">new</span> <span class="type">UserController</span>(mockUserService.Object);</code></pre>
+                </div>
+            </div>
+
+            <div class="concept-box">
+                <h4>Understanding Mocking</h4>
+                <p>Mocking is a technique that creates fake implementations of dependencies. In this test, we use Moq to create a mock IUserService that behaves exactly how we want it to for testing purposes. The Setup method configures what the mock should return when specific methods are called, and ReturnsAsync specifies the asynchronous return value. This allows us to test the controller without needing a real database or service implementation.</p>
+            </div>
+
+            <h3>Verifying the User Model</h3>
+            
+            <div class="content-grid">
+                <div class="narration-column">
+                    <h4>Narration</h4>
+                    <p>Before proceeding, we verify that our User class in the models has all the required properties: ID, Name, and Email. Confirming this ensures our test data matches the actual model structure.</p>
+                </div>
+                
+                <div class="code-column">
+                    <h4>User Model</h4>
+                    <pre><code><span class="keyword">public class</span> <span class="type">User</span>
+{
+    <span class="keyword">public int</span> Id { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public string</span> Name { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public string</span> Email { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+}</code></pre>
+                </div>
+            </div>
+
+            <h3>The Act Section</h3>
+            
+            <div class="content-grid">
+                <div class="narration-column">
+                    <h4>Narration</h4>
+                    <p>Now for the Act section, where we execute the behavior that we're testing.</p>
+                    <p>We call the GetUser method on our controller, passing in our test user ID, and await the result.</p>
+                    <p>The Act section should always be a single operation - the one thing we're testing. This keeps our tests focused and makes failures easy to diagnose.</p>
+                </div>
+                
+                <div class="code-column">
+                    <h4>Act Section Code</h4>
+                    <pre><code><span class="comment">// Act</span>
+<span class="keyword">var</span> result = <span class="keyword">await</span> controller.<span class="method">GetUser</span>(userId);</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section aria-labelledby="aaa-pattern">
+            <h2 id="aaa-pattern">The Arrange-Act-Assert Pattern</h2>
+            
+            <div class="concept-box">
+                <h4>Understanding the AAA Pattern</h4>
+                <p>The Arrange-Act-Assert pattern is a fundamental structure for writing clear, maintainable unit tests:</p>
+                <dl>
+                    <dt><span class="step-indicator">Arrange</span> Setup Phase</dt>
+                    <dd>Initialize objects, create mocks, and set up the test scenario. This section prepares everything needed for the test.</dd>
+                    
+                    <dt><span class="step-indicator">Act</span> Execution Phase</dt>
+                    <dd>Execute the single method or operation being tested. This should be one line of code that performs the action you're verifying.</dd>
+                    
+                    <dt><span class="step-indicator">Assert</span> Verification Phase</dt>
+                    <dd>Verify that the action produced the expected results. Check return values, state changes, or method calls on mocks.</dd>
+                </dl>
+            </div>
+
+            <h3>Complete Test Example</h3>
+            
+            <pre><code>[<span class="type">Fact</span>]
+<span class="keyword">public async</span> <span class="type">Task</span> <span class="method">GetUser_WithValidId_ReturnsOkResult</span>()
+{
+    <span class="comment">// Arrange</span>
+    <span class="keyword">var</span> userId = <span class="string">1</span>;
+    <span class="keyword">var</span> expectedUser = <span class="keyword">new</span> <span class="type">User</span>
+    {
+        Id = userId,
+        Name = <span class="string">"John Doe"</span>,
+        Email = <span class="string">"john@example.com"</span>
+    };
+
+    <span class="keyword">var</span> mockUserService = <span class="keyword">new</span> <span class="type">Mock</span>&lt;<span class="type">IUserService</span>&gt;();
+    mockUserService
+        .<span class="method">Setup</span>(s =&gt; s.<span class="method">GetUserByIdAsync</span>(userId))
+        .<span class="method">ReturnsAsync</span>(expectedUser);
+
+    <span class="keyword">var</span> controller = <span class="keyword">new</span> <span class="type">UserController</span>(mockUserService.Object);
+
+    <span class="comment">// Act</span>
+    <span class="keyword">var</span> result = <span class="keyword">await</span> controller.<span class="method">GetUser</span>(userId);
+
+    <span class="comment">// Assert (to be completed)</span>
+    <span class="comment">// Verification code will go here</span>
+}</code></pre>
+        </section>
+
+        <section aria-labelledby="key-concepts">
+            <h2 id="key-concepts">Key Testing Concepts</h2>
+            
+            <dl>
+                <dt>Unit Testing</dt>
+                <dd>Testing individual components in isolation to verify they work correctly. Unit tests should be fast, independent, and repeatable.</dd>
+                
+                <dt>Mocking</dt>
+                <dd>Creating test doubles that simulate the behavior of real dependencies. Mocks allow you to control what dependencies return and verify how they're called.</dd>
+                
+                <dt>Dependency Injection</dt>
+                <dd>A design pattern where dependencies are provided to a class rather than created within it. This makes classes more testable by allowing mock dependencies to be injected.</dd>
+                
+                <dt>Isolation</dt>
+                <dd>Testing a component without involving its real dependencies. This ensures tests fail only when the component being tested has a problem, not when its dependencies fail.</dd>
+                
+                <dt>[Fact] Attribute</dt>
+                <dd>An xUnit attribute that marks a method as a test. The test runner discovers and executes all methods marked with [Fact].</dd>
+                
+                <dt>Async Testing</dt>
+                <dd>Testing asynchronous methods using async/await. Test methods return Task and use await to properly handle asynchronous operations.</dd>
+            </dl>
+        </section>
+
+        <section aria-labelledby="best-practices">
+            <h2 id="best-practices">Testing Best Practices</h2>
+            
+            <div class="concept-box">
+                <h4>Essential Testing Principles</h4>
+                <ul>
+                    <li><strong>Test One Thing:</strong> Each test should verify a single behavior or scenario</li>
+                    <li><strong>Use Clear Names:</strong> Test names should describe what's being tested, the scenario, and expected outcome</li>
+                    <li><strong>Keep Tests Independent:</strong> Tests should not depend on each other or share state</li>
+                    <li><strong>Mock External Dependencies:</strong> Isolate the code under test by mocking dependencies</li>
+                    <li><strong>Arrange-Act-Assert:</strong> Follow the AAA pattern to structure tests clearly</li>
+                    <li><strong>Test Edge Cases:</strong> Include tests for error conditions, null values, and boundary cases</li>
+                    <li><strong>Keep Tests Fast:</strong> Unit tests should run quickly to encourage frequent execution</li>
+                </ul>
+            </div>
+        </section>
+
+        <section aria-labelledby="conclusion">
+            <h2 id="conclusion">Summary</h2>
+            <p>In this tutorial, you learned the fundamentals of unit testing ASP.NET Core controllers:</p>
+            <ul>
+                <li>Setting up test projects and organizing test classes</li>
+                <li>Using the Arrange-Act-Assert pattern to structure tests</li>
+                <li>Creating mocks with Moq to simulate service dependencies</li>
+                <li>Configuring mock behavior with Setup and ReturnsAsync</li>
+                <li>Testing controller actions that depend on injected services</li>
+                <li>Writing clear, maintainable test methods with descriptive names</li>
+            </ul>
+            <p>These skills form the foundation for writing comprehensive test suites that verify controller behavior, handle edge cases, and ensure your applications work reliably in production.</p>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <p>ASP.NET Core Unit Testing Tutorial - Controllers and Business Services</p>
+    </footer>
+</body>
+</html>
+```

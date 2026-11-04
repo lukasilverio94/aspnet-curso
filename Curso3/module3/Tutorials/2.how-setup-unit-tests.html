@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Writing and Running Your First Unit Tests with xUnit</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5em;
+            color: #333;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 1em;
+            overflow-x: auto;
+            border-radius: 4px;
+            border-left: 4px solid #512bd4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+        .skip-link:focus {
+            position: static;
+            width: auto;
+            height: auto;
+            margin: 10px;
+            padding: 10px;
+            background: #fff;
+            border: 2px solid #000;
+            z-index: 1000;
+        }
+        h1, h2, h3, h4 {
+            color: #512bd4;
+            margin-top: 1.5em;
+        }
+        h1 {
+            border-bottom: 3px solid #512bd4;
+            padding-bottom: 0.3em;
+        }
+        h2 {
+            border-bottom: 2px solid #e1e1e1;
+            padding-bottom: 0.2em;
+        }
+        .concept-box {
+            background-color: #f0ebff;
+            border-left: 4px solid #512bd4;
+            padding: 1em;
+            margin: 1em 0;
+            border-radius: 4px;
+        }
+        .key-point {
+            background-color: #fff4e5;
+            border-left: 4px solid #ff8c00;
+            padding: 1em;
+            margin: 1em 0;
+            border-radius: 4px;
+        }
+        .workflow-step {
+            background-color: #f0f0f0;
+            padding: 0.5em 1em;
+            margin: 0.5em 0;
+            border-radius: 4px;
+            border-left: 3px solid #512bd4;
+        }
+        .command-box {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1em;
+            border-radius: 4px;
+            margin: 1em 0;
+        }
+        .command-box code {
+            background-color: transparent;
+            color: #d4d4d4;
+        }
+        .success-box {
+            background-color: #f0fff4;
+            border-left: 4px solid #28a745;
+            padding: 1em;
+            margin: 1em 0;
+            border-radius: 4px;
+        }
+        .error-box {
+            background-color: #fff5f5;
+            border-left: 4px solid #dc3545;
+            padding: 1em;
+            margin: 1em 0;
+            border-radius: 4px;
+        }
+        .test-output {
+            background-color: #1e1e1e;
+            color: #4ec9b0;
+            padding: 1em;
+            border-radius: 4px;
+            margin: 1em 0;
+            font-family: monospace;
+        }
+        kbd {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 0.1em 0.4em;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        ul, ol {
+            margin: 1em 0;
+            padding-left: 2em;
+        }
+        li {
+            margin: 0.5em 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
+        }
+        th, td {
+            padding: 0.75em;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #512bd4;
+            color: white;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .aaa-pattern {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1em;
+            margin: 1em 0;
+        }
+        .aaa-section {
+            background-color: #f8f9fa;
+            padding: 1em;
+            border-radius: 4px;
+            border-left: 3px solid #512bd4;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <header role="banner">
+        <h1>Writing and Running Your First Unit Tests with xUnit</h1>
+        <p>Creating meaningful tests using the Arrange-Act-Assert pattern</p>
+    </header>
+
+    <main id="main-content" role="main">
+        <section aria-labelledby="overview">
+            <h2 id="overview">Overview</h2>
+            <p>This tutorial demonstrates how to write and execute meaningful unit tests for ASP.NET Core applications using xUnit. You will learn to:</p>
+            <ul>
+                <li>Examine the default test structure created by the xUnit template</li>
+                <li>Create a simple class to test in the API project</li>
+                <li>Write unit tests using the Arrange-Act-Assert pattern</li>
+                <li>Run tests and interpret test results</li>
+                <li>Test different scenarios including exception handling</li>
+                <li>Debug and fix failing tests</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="default-test">
+            <h2 id="default-test">Examining the Default Test</h2>
+            
+            <h3>Opening UnitTest1.cs</h3>
+            <p>Open the <code>UnitTest1.cs</code> file in the MathApp.Tests project to examine the default test structure.</p>
+            
+            <h3>Default Test Structure</h3>
+            <pre><code class="language-csharp">namespace MathApp.Tests;
+
+public class UnitTest1
+{
+    [Fact]
+    public void Test1()
+    {
+        Assert.True(true);
+    }
+}</code></pre>
+            
+            <h3>Understanding the Default Test</h3>
+            <div class="concept-box">
+                <p>The default test demonstrates basic xUnit syntax:</p>
+                <ul>
+                    <li><strong>Test Class:</strong> <code>UnitTest1</code> - A public class containing test methods</li>
+                    <li><strong>[Fact] Attribute:</strong> Marks <code>Test1()</code> as a test method with no parameters</li>
+                    <li><strong>Simple Assertion:</strong> <code>Assert.True(true)</code> - A basic assertion that always passes</li>
+                </ul>
+                <p>This is a placeholder test to verify the test infrastructure works correctly.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="creating-calculator">
+            <h2 id="creating-calculator">Creating a Class to Test</h2>
+            
+            <h3>Adding the Calculator Class</h3>
+            <p>Before writing meaningful tests, create a simple class in the API project that contains methods to test.</p>
+            
+            <div class="workflow-step">
+                <strong>Step 1:</strong> Hover over the MathApp.API project in the Project Explorer
+            </div>
+            <div class="workflow-step">
+                <strong>Step 2:</strong> Right-click to open the context menu
+            </div>
+            <div class="workflow-step">
+                <strong>Step 3:</strong> Select "New File"
+            </div>
+            <div class="workflow-step">
+                <strong>Step 4:</strong> Type <code>Calculator.cs</code> as the filename
+            </div>
+            <div class="workflow-step">
+                <strong>Step 5:</strong> Press <kbd>Enter</kbd> to create the file
+            </div>
+            
+            <h3>Implementing the Calculator Class</h3>
+            <pre><code class="language-csharp">namespace MathApp.API;
+
+public class Calculator
+{
+    public int Add(int a, int b)
+    {
+        return a + b;
+    }
+    
+    public int Subtract(int a, int b)
+    {
+        return a - b;
+    }
+    
+    public double Divide(int a, int b)
+    {
+        if (b == 0)
+            throw new DivideByZeroException("Cannot divide by zero");
+        
+        return (double)a / b;
+    }
+    
+    public int Multiply(int a, int b)
+    {
+        return a * b;
+    }
+}</code></pre>
+            
+            <h3>Saving the File</h3>
+            <p>Save the file using <kbd>Ctrl</kbd> + <kbd>S</kbd> (Windows/Linux) or <kbd>Cmd</kbd> + <kbd>S</kbd> (Mac).</p>
+            
+            <div class="success-box">
+                <p><strong>Result:</strong> You now have a simple Calculator class with several methods (Add, Subtract, Divide, Multiply) that can be tested. These methods provide various scenarios including normal operations and exception handling.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="first-test">
+            <h2 id="first-test">Writing Your First Meaningful Unit Test</h2>
+            
+            <h3>Opening the Test File</h3>
+            <p>Return to the <code>UnitTest1.cs</code> file in the MathApp.Tests project.</p>
+            
+            <h3>Adding Using Statement</h3>
+            <p>First, add a using statement to reference the API project:</p>
+            
+            <pre><code class="language-csharp">using MathApp.API;</code></pre>
+            
+            <div class="concept-box">
+                <p><strong>Note:</strong> If you configured global usings in the project file, you may not need to add this using statement to every file. However, it's shown here for clarity.</p>
+            </div>
+            
+            <h3>Replacing the Default Test</h3>
+            <p>Replace the default test with a meaningful test for the Calculator class:</p>
+            
+            <pre><code class="language-csharp">using MathApp.API;
+
+namespace MathApp.Tests;
+
+public class CalculatorTests
+{
+    [Fact]
+    public void Add_TwoNumbers_ReturnsCorrectSum()
+    {
+        // Arrange
+        var calculator = new Calculator();
+        int a = 5;
+        int b = 3;
+        
+        // Act
+        int result = calculator.Add(a, b);
+        
+        // Assert
+        Assert.Equal(8, result);
+    }
+}</code></pre>
+        </section>
+
+        <section aria-labelledby="aaa-pattern">
+            <h2 id="aaa-pattern">Understanding the Arrange-Act-Assert Pattern</h2>
+            
+            <div class="concept-box">
+                <p><strong>The Arrange-Act-Assert (AAA) Pattern:</strong> A common structure for organizing unit tests that makes them clear, consistent, and maintainable.</p>
+            </div>
+            
+            <div class="aaa-pattern">
+                <div class="aaa-section">
+                    <h3>Arrange</h3>
+                    <p><strong>Purpose:</strong> Set up test data and preconditions</p>
+                    <pre><code class="language-csharp">var calculator = new Calculator();
+int a = 5;
+int b = 3;</code></pre>
+                    <p>Creates a Calculator instance and defines input values for the test.</p>
+                </div>
+                
+                <div class="aaa-section">
+                    <h3>Act</h3>
+                    <p><strong>Purpose:</strong> Execute the method being tested</p>
+                    <pre><code class="language-csharp">int result = calculator.Add(a, b);</code></pre>
+                    <p>Calls the Add method with the test values and captures the result.</p>
+                </div>
+                
+                <div class="aaa-section">
+                    <h3>Assert</h3>
+                    <p><strong>Purpose:</strong> Verify the expected outcome</p>
+                    <pre><code class="language-csharp">Assert.Equal(8, result);</code></pre>
+                    <p>Verifies that the result equals the expected value of 8.</p>
+                </div>
+            </div>
+            
+            <h3>Benefits of the AAA Pattern</h3>
+            <ul>
+                <li><strong>Clarity:</strong> Each section has a clear, single purpose</li>
+                <li><strong>Consistency:</strong> Tests follow a predictable structure</li>
+                <li><strong>Readability:</strong> Easy for other developers to understand</li>
+                <li><strong>Maintainability:</strong> Changes are easy to locate and implement</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="running-first-test">
+            <h2 id="running-first-test">Running Your First Test</h2>
+            
+            <h3>Opening the Terminal</h3>
+            <p>Open the integrated terminal in Visual Studio Code.</p>
+            
+            <h3>Running All Tests</h3>
+            <div class="command-box">
+                <code>dotnet test</code>
+            </div>
+            
+            <h3>Understanding Test Output</h3>
+            <div class="test-output">
+                <pre>Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 45 ms - MathApp.Tests.dll</pre>
+            </div>
+            
+            <h4>Interpreting the Results</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                        <th>Meaning</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Total</strong></td>
+                        <td>1</td>
+                        <td>One test was discovered and executed</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Passed</strong></td>
+                        <td>1</td>
+                        <td>The test executed successfully with expected results</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Failed</strong></td>
+                        <td>0</td>
+                        <td>No tests failed</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Skipped</strong></td>
+                        <td>0</td>
+                        <td>No tests were skipped</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="success-box">
+                <p><strong>Success:</strong> The terminal displays that the test passed successfully. This confirms that:</p>
+                <ul>
+                    <li>The test project is set up correctly</li>
+                    <li>Project references are working properly</li>
+                    <li>The Calculator.Add method functions as expected</li>
+                    <li>The first meaningful test is working</li>
+                </ul>
+            </div>
+            
+            <h3>When Tests Fail</h3>
+            <div class="concept-box">
+                <p><strong>Failure Output Information:</strong> If any test fails, the terminal output will display:</p>
+                <ul>
+                    <li>Which test method failed</li>
+                    <li>The expected value</li>
+                    <li>The actual value that was returned</li>
+                    <li>The line number where the assertion failed</li>
+                    <li>A stack trace showing the execution path</li>
+                </ul>
+                <p>This information is extremely useful for debugging and identifying the source of problems.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="additional-tests">
+            <h2 id="additional-tests">Adding More Test Scenarios</h2>
+            
+            <h3>Testing Multiple Scenarios</h3>
+            <p>Add additional tests to demonstrate different testing scenarios including normal operations and exception handling:</p>
+            
+            <pre><code class="language-csharp">using MathApp.API;
+
+namespace MathApp.Tests;
+
+public class CalculatorTests
+{
+    [Fact]
+    public void Add_TwoNumbers_ReturnsCorrectSum()
+    {
+        // Arrange
+        var calculator = new Calculator();
+        int a = 5;
+        int b = 3;
+        
+        // Act
+        int result = calculator.Add(a, b);
+        
+        // Assert
+        Assert.Equal(8, result);
+    }
+    
+    [Fact]
+    public void Subtract_TwoNumbers_ReturnsCorrectDifference()
+    {
+        // Arrange
+        var calculator = new Calculator();
+        int a = 10;
+        int b = 4;
+        
+        // Act
+        int result = calculator.Subtract(a, b);
+        
+        // Assert
+        Assert.Equal(6, result);
+    }
+    
+    [Fact]
+    public void Divide_ByZero_ThrowsDivideByZeroException()
+    {
+        // Arrange
+        var calculator = new Calculator();
+        int a = 10;
+        int b = 0;
+        
+        // Act & Assert
+        Assert.Throws&lt;DivideByZeroException&gt;(() => calculator.Divide(a, b));
+    }
+}</code></pre>
+            
+            <h3>Understanding Each Test</h3>
+            
+            <h4>1. Add Test</h4>
+            <div class="concept-box">
+                <p><strong>Purpose:</strong> Verifies that the Add method correctly sums two numbers.</p>
+                <p><strong>Expected:</strong> 5 + 3 = 8</p>
+                <p><strong>Pattern:</strong> Standard AAA pattern with separate sections</p>
+            </div>
+            
+            <h4>2. Subtract Test</h4>
+            <div class="concept-box">
+                <p><strong>Purpose:</strong> Verifies that the Subtract method correctly calculates the difference.</p>
+                <p><strong>Expected:</strong> 10 - 4 = 6</p>
+                <p><strong>Pattern:</strong> Standard AAA pattern demonstrating consistent structure</p>
+            </div>
+            
+            <h4>3. Exception Test</h4>
+            <div class="concept-box">
+                <p><strong>Purpose:</strong> Verifies that dividing by zero throws the correct exception.</p>
+                <p><strong>Expected:</strong> <code>DivideByZeroException</code> is thrown</p>
+                <p><strong>Pattern:</strong> Act and Assert phases are combined when testing exceptions</p>
+                
+                <h5>Testing Exceptions with Assert.Throws</h5>
+                <pre><code class="language-csharp">Assert.Throws&lt;DivideByZeroException&gt;(() => calculator.Divide(a, b));</code></pre>
+                
+                <p>This syntax uses a lambda expression to execute the code that should throw an exception. If the expected exception is thrown, the test passes. If no exception or a different exception is thrown, the test fails.</p>
+            </div>
+            
+            <h3>Save the File</h3>
+            <p>Save the updated test file using <kbd>Ctrl</kbd> + <kbd>S</kbd>.</p>
+        </section>
+
+        <section aria-labelledby="running-multiple-tests">
+            <h2 id="running-multiple-tests">Running Multiple Tests and Debugging Failures</h2>
+            
+            <h3>Running the Updated Tests</h3>
+            <p>Open the terminal and run all tests again:</p>
+            
+            <div class="command-box">
+                <code>dotnet test</code>
+            </div>
+            
+            <h3>Encountering a Test Failure</h3>
+            <div class="error-box">
+                <h4>Test Failure Output</h4>
+                <div class="test-output" style="color: #ff6b6b;">
+                    <pre>Failed!  - Failed:     1, Passed:     2, Skipped:     0, Total:     3
+
+X Divide_ByZero_ThrowsDivideByZeroException [23ms]
+  Error Message:
+   Assert.Throws() Failure
+   Expected: typeof(System.ArgumentException)
+   Actual:   typeof(System.DivideByZeroException)
+   
+  Stack Trace:
+     at MathApp.Tests.CalculatorTests.Divide_ByZero_ThrowsArgumentException() 
+     in C:\Projects\MathApp\MathApp.Tests\CalculatorTests.cs:line 38</pre>
+                </div>
+                
+                <h4>Understanding the Failure</h4>
+                <p>The test failed because:</p>
+                <ul>
+                    <li><strong>Expected:</strong> <code>ArgumentException</code></li>
+                    <li><strong>Actual:</strong> <code>DivideByZeroException</code></li>
+                    <li>The test was checking for the wrong exception type</li>
+                </ul>
+            </div>
+            
+            <h3>Fixing the Test</h3>
+            <p>The issue is that the test is checking for <code>ArgumentException</code> when it should check for <code>DivideByZeroException</code>. Update the test:</p>
+            
+            <h4>Before (Incorrect)</h4>
+            <pre><code class="language-csharp">[Fact]
+public void Divide_ByZero_ThrowsArgumentException()
+{
+    // Arrange
+    var calculator = new Calculator();
+    int a = 10;
+    int b = 0;
+    
+    // Act & Assert
+    Assert.Throws&lt;ArgumentException&gt;(() => calculator.Divide(a, b));
+}</code></pre>
+            
+            <h4>After (Corrected)</h4>
+            <pre><code class="language-csharp">[Fact]
+public void Divide_ByZero_ThrowsDivideByZeroException()
+{
+    // Arrange
+    var calculator = new Calculator();
+    int a = 10;
+    int b = 0;
+    
+    // Act & Assert
+    Assert.Throws&lt;DivideByZeroException&gt;(() => calculator.Divide(a, b));
+}</code></pre>
+            
+            <div class="key-point">
+                <p><strong>Key Changes:</strong></p>
+                <ol>
+                    <li>Changed <code>Assert.Throws&lt;ArgumentException&gt;</code> to <code>Assert.Throws&lt;DivideByZeroException&gt;</code></li>
+                    <li>Renamed the test method from <code>ThrowsArgumentException</code> to <code>ThrowsDivideByZeroException</code> to match the actual behavior</li>
+                </ol>
+            </div>
+            
+            <h3>Save and Rerun Tests</h3>
+            <p>Save the corrected file and run the tests again:</p>
+            
+            <div class="command-box">
+                <code>dotnet test</code>
+            </div>
+            
+            <h3>Successful Test Run</h3>
+            <div class="success-box">
+                <div class="test-output">
+                    <pre>Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:     3, Skipped:     0, Total:     3, Duration: 52 ms - MathApp.Tests.dll</pre>
+                </div>
+                
+                <p><strong>Success!</strong> All three tests are now passing:</p>
+                <ul>
+                    <li>✓ <code>Add_TwoNumbers_ReturnsCorrectSum</code></li>
+                    <li>✓ <code>Subtract_TwoNumbers_ReturnsCorrectDifference</code></li>
+                    <li>✓ <code>Divide_ByZero_ThrowsDivideByZeroException</code></li>
+                </ul>
+            </div>
+        </section>
+
+        <section aria-labelledby="test-verification">
+            <h2 id="test-verification">What Successful Tests Prove</h2>
+            
+            <div class="concept-box">
+                <p><strong>Verification Complete:</strong> All three tests passing confirms that:</p>
+                
+                <h3>1. Test Project Configuration</h3>
+                <ul>
+                    <li>The test project is properly configured with xUnit</li>
+                    <li>All necessary NuGet packages are installed and working</li>
+                    <li>Project references are correctly set up</li>
+                </ul>
+                
+                <h3>2. Test Discovery and Execution</h3>
+                <ul>
+                    <li>The test runner can discover all test methods</li>
+                    <li>Tests execute in isolation without affecting each other</li>
+                    <li>Test results are accurately reported</li>
+                </ul>
+                
+                <h3>3. Different Testing Scenarios</h3>
+                <ul>
+                    <li><strong>Normal Operations:</strong> Add and Subtract methods work correctly</li>
+                    <li><strong>Exception Handling:</strong> Divide method properly throws exceptions for invalid input</li>
+                    <li><strong>Assertion Variety:</strong> Both value comparisons and exception testing work</li>
+                </ul>
+                
+                <h3>4. Code Quality</h3>
+                <ul>
+                    <li>The Calculator class behaves as expected</li>
+                    <li>Edge cases (like division by zero) are handled appropriately</li>
+                    <li>Tests document the expected behavior of the code</li>
+                </ul>
+            </div>
+        </section>
+
+        <section aria-labelledby="testing-best-practices">
+            <h2 id="testing-best-practices">Unit Testing Best Practices</h2>
+            
+            <h3>Test Organization</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Practice</th>
+                        <th>Description</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Descriptive Names</strong></td>
+                        <td>Test names should describe what is being tested</td>
+                        <td><code>Add_TwoNumbers_ReturnsCorrectSum</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>One Class Per Feature</strong></td>
+                        <td>Group related tests in the same class</td>
+                        <td><code>CalculatorTests</code> for all Calculator tests</td>
+                    </tr>
+                    <tr>
+                        <td><strong>AAA Pattern</strong></td>
+                        <td>Use Arrange-Act-Assert structure consistently</td>
+                        <td>Clear sections in every test</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Test Independence</strong></td>
+                        <td>Each test should run independently</td>
+                        <td>Create new instances in each test</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>What to Test</h3>
+            <ul>
+                <li><strong>Happy Path:</strong> Test normal, expected behavior</li>
+                <li><strong>Edge Cases:</strong> Test boundary conditions (zero, negative numbers, null, empty)</li>
+                <li><strong>Exception Scenarios:</strong> Verify proper error handling</li>
+                <li><strong>Business Logic:</strong> Test critical business rules</li>
+                <li><strong>State Changes:</strong> Verify objects are modified correctly</li>
+            </ul>
+            
+            <h3>Test Characteristics</h3>
+            <div class="concept-box">
+                <p><strong>Good Tests are FIRST:</strong></p>
+                <dl>
+                    <dt><strong>F</strong>ast</dt>
+                    <dd>Tests should execute quickly (milliseconds, not seconds)</dd>
+                    
+                    <dt><strong>I</strong>ndependent</dt>
+                    <dd>Tests should not depend on each other or external state</dd>
+                    
+                    <dt><strong>R</strong>epeatable</dt>
+                    <dd>Tests should produce the same results every time</dd>
+                    
+                    <dt><strong>S</strong>elf-Validating</dt>
+                    <dd>Tests should have clear pass/fail outcomes without manual verification</dd>
+                    
+                    <dt><strong>T</strong>imely</dt>
+                    <dd>Write tests at the right time (ideally before or with the code)</dd>
+                </dl>
+            </div>
+        </section>
+
+        <section aria-labelledby="common-assertions-recap">
+            <h2 id="common-assertions-recap">Common xUnit Assertions Reference</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Assertion</th>
+                        <th>Use Case</th>
+                        <th>Example from This Tutorial</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>Assert.Equal(expected, actual)</code></td>
+                        <td>Verify values are equal</td>
+                        <td><code>Assert.Equal(8, result)</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>Assert.NotEqual(expected, actual)</code></td>
+                        <td>Verify values are not equal</td>
+                        <td>Testing for changed values</td>
+                    </tr>
+                    <tr>
+                        <td><code>Assert.True(condition)</code></td>
+                        <td>Verify condition is true</td>
+                        <td><code>Assert.True(result > 0)</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>Assert.False(condition)</code></td>
+                        <td>Verify condition is false</td>
+                        <td><code>Assert.False(result < 0)</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>Assert.Null(object)</code></td>
+                        <td>Verify object is null</td>
+                        <td>Testing method returns null</td>
+                    </tr>
+                    <tr>
+                        <td><code>Assert.NotNull(object)</code></td>
+                        <td>Verify object is not null</td>
+                        <td>Testing object creation</td>
+                    </tr>
+                    <tr>
+                        <td><code>Assert.Throws&lt;T&gt;(action)</code></td>
+                        <td>Verify exception is thrown</td>
+                        <td><code>Assert.Throws&lt;DivideByZeroException&gt;(() => calculator.Divide(a, b))</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>Assert.Contains(item, collection)</code></td>
+                        <td>Verify collection contains item</td>
+                        <td>Testing list operations</td>
+                    </tr>
+                    <tr>
+                        <td><code>Assert.Empty(collection)</code></td>
+                        <td>Verify collection is empty</td>
+                        <td>Testing cleared collections</td>
+                    </tr>
+                    <tr>
+                        <td><code>Assert.InRange(actual, low, high)</code></td>
+                        <td>Verify value is within range</td>
+                        <td>Testing calculated values</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section aria-labelledby="next-steps-recap">
+            <h2 id="next-steps-recap">Applying This to Real-World Applications</h2>
+            
+            <h3>Ready for Production Testing</h3>
+            <div class="success-box">
+                <p>Now that you've created and run a working unit test project using xUnit, you're ready to apply this setup to real-world ASP.NET Core applications. This foundation will help ensure reliability and maintainability in your codebase.</p>
+            </div>
+            
+            <h3>What You Can Test</h3>
+            
+            <h4>1. Services</h4>
+            <pre><code class="language-csharp">public class UserServiceTests
+{
+    [Fact]
+    public void CreateUser_ValidData_ReturnsUser()
+    {
+        // Arrange
+        var service = new UserService();
+        var userData = new CreateUserDto { Name = "John", Email = "john@example.com" };
+        
+        // Act
+        var result = service.CreateUser(userData);
+        
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("John", result.Name);
+    }
+}</code></pre>
+            
+            <h4>2. Controllers</h4>
+            <pre><code class="language-csharp">public class ProductsControllerTests
+{
+    [Fact]
+    public void GetProduct_ExistingId_ReturnsProduct()
+    {
+        // Arrange
+        var controller = new ProductsController();
+        int productId = 1;
+        
+        // Act
+        var result = controller.GetProduct(productId);
+        
+        // Assert
+        Assert.IsType&lt;OkObjectResult&gt;(result);
+    }
+}</code></pre>
+            
+            <h4>3. Custom Logic</h4>
+            <pre><code class="language-csharp">public class ValidationHelperTests
+{
+    [Theory]
+    [InlineData("test@example.com", true)]
+    [InlineData("invalid-email", false)]
+    [InlineData("", false)]
+    public void IsValidEmail_VariousInputs_ReturnsExpectedResult(string email, bool expected)
+    {
+        // Act
+        var result = ValidationHelper.IsValidEmail(email);
+        
+        // Assert
+        Assert.Equal(expected, result);
+    }
+}</code></pre>
+            
+            <h3>Benefits of Unit Testing</h3>
+            <ul>
+                <li><strong>Early Bug Detection:</strong> Catch errors before they reach production</li>
+                <li><strong>Refactoring Confidence:</strong> Make changes knowing tests will catch regressions</li>
+                <li><strong>Documentation:</strong> Tests document how code should behave</li>
+                <li><strong>Design Improvement:</strong> Writing tests encourages better code design</li>
+                <li><strong>Faster Development:</strong> Automated testing is faster than manual testing</li>
+                <li><strong>Team Collaboration:</strong> Tests help teams understand and modify code safely</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="key-concepts">
+            <h2 id="key-concepts">Key Concepts Summary</h2>
+            
+            <dl>
+                <dt>Arrange-Act-Assert (AAA) Pattern</dt>
+                <dd>A structural pattern for organizing unit tests into three clear sections: Arrange sets up test data, Act executes the method under test, and Assert verifies the expected outcome.</dd>
+                
+                <dt>[Fact] Attribute</dt>
+                <dd>An xUnit attribute that marks a parameterless method as a unit test. Tests marked with [Fact] are automatically discovered and executed by test runners.</dd>
+                
+                <dt>Test Method Naming</dt>
+                <dd>A convention for naming test methods that describes what is being tested, the conditions, and the expected outcome, such as <code>MethodName_Scenario_ExpectedResult</code>.</dd>
+                
+                <dt>Assert.Equal</dt>
+                <dd>An xUnit assertion method that verifies two values are equal. If they're not equal, the test fails with a message showing the expected and actual values.</dd>
+                
+                <dt>Assert.Throws&lt;T&gt;</dt>
+                <dd>An xUnit assertion method that verifies a specific exception type is thrown when executing code. The Act and Assert phases are typically combined when testing exceptions.</dd>
+                
+                <dt>Test Independence</dt>
+                <dd>The principle that each test should run independently without relying on other tests or maintaining shared state, ensuring tests can run in any order.</dd>
+                
+                <dt>Test Failure Output</dt>
+                <dd>Detailed information provided by the test runner when a test fails, including which test failed, expected vs actual values, and a stack trace for debugging.</dd>
+                
+                <dt>Test Discovery</dt>
+                <dd>The process by which test runners automatically find and identify test methods in a project by looking for test attributes like [Fact] and [Theory].</dd>
+            </dl>
+        </section>
+
+        <section aria-labelledby="conclusion">
+            <h2 id="conclusion">Conclusion</h2>
+            
+            <p>You have successfully completed the process of writing and running your first meaningful unit tests in ASP.NET Core using xUnit. This tutorial covered:</p>
+            
+            <ul>
+                <li><strong>Default Test Structure:</strong> Examined the basic xUnit syntax provided by the template</li>
+                <li><strong>Creating Testable Code:</strong> Built a Calculator class with various methods to test</li>
+                <li><strong>Writing Meaningful Tests:</strong> Created tests following the Arrange-Act-Assert pattern</li>
+                <li><strong>Testing Normal Operations:</strong> Verified Add and Subtract methods work correctly</li>
+                <li><strong>Testing Exception Scenarios:</strong> Confirmed proper exception handling for edge cases</li>
+                <li><strong>Running and Debugging:</strong> Executed tests, encountered failures, and fixed them</li>
+                <li><strong>Interpreting Results:</strong> Understood test output and failure messages</li>
+            </ul>
+            
+            <div class="success-box">
+                <h3>What You've Accomplished</h3>
+                <p>You now have:</p>
+                <ul>
+                    <li>A complete, working unit test project structure</li>
+                    <li>Experience writing tests using the AAA pattern</li>
+                    <li>Knowledge of testing both normal operations and exceptions</li>
+                    <li>Skills in running tests and interpreting results</li>
+                    <li>The ability to debug and fix failing tests</li>
+                    <li>A foundation for testing real-world ASP.NET Core applications</li>
+                </ul>
+            </div>
+            
+            <div class="key-point">
+                <h3>Building Reliable and Maintainable Code</h3>
+                <p>Unit testing is essential for building robust ASP.NET Core applications. The skills you've learned enable you to:</p>
+                <ul>
+                    <li>Catch bugs early in the development process</li>
+                    <li>Refactor code with confidence</li>
+                    <li>Document expected behavior through tests</li>
+                    <li>Collaborate effectively with team members</li>
+                    <li>Ensure code quality and reliability</li>
+                    <li>Maintain codebases more easily over time</li>
+                </ul>
+                
+                <p>Whether you're testing services, controllers, or custom business logic, this foundation with xUnit provides the tools and patterns you need to write comprehensive, maintainable tests for your ASP.NET Core applications.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <p>Writing and Running Your First Unit Tests with xUnit - Arrange-Act-Assert Pattern and Test Execution</p>
+    </footer>
+</body>
+</html>

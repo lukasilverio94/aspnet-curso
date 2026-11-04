@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Writing and Running Integration Tests for ASP.NET Core APIs</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5em;
+            color: #333;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 1em;
+            overflow-x: auto;
+            border-radius: 4px;
+            border-left: 4px solid #512bd4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+        .skip-link:focus {
+            position: static;
+            width: auto;
+            height: auto;
+            margin: 10px;
+            padding: 10px;
+            background: #fff;
+            border: 2px solid #000;
+            z-index: 1000;
+        }
+        h1, h2, h3, h4 {
+            color: #512bd4;
+            margin-top: 1.5em;
+        }
+        h1 {
+            border-bottom: 3px solid #512bd4;
+            padding-bottom: 0.3em;
+        }
+        h2 {
+            border-bottom: 2px solid #e1e1e1;
+            padding-bottom: 0.2em;
+        }
+        .concept-box {
+            background-color: #f0ebff;
+            border-left: 4px solid #512bd4;
+            padding: 1em;
+            margin: 1em 0;
+            border-radius: 4px;
+        }
+        .key-point {
+            background-color: #fff4e5;
+            border-left: 4px solid #ff8c00;
+            padding: 1em;
+            margin: 1em 0;
+            border-radius: 4px;
+        }
+        .workflow-step {
+            background-color: #f0f0f0;
+            padding: 0.5em 1em;
+            margin: 0.5em 0;
+            border-radius: 4px;
+            border-left: 3px solid #512bd4;
+        }
+        .command-box {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1em;
+            border-radius: 4px;
+            margin: 1em 0;
+        }
+        .command-box code {
+            background-color: transparent;
+            color: #d4d4d4;
+        }
+        .success-box {
+            background-color: #f0fff4;
+            border-left: 4px solid #28a745;
+            padding: 1em;
+            margin: 1em 0;
+            border-radius: 4px;
+        }
+        .test-output {
+            background-color: #1e1e1e;
+            color: #4ec9b0;
+            padding: 1em;
+            border-radius: 4px;
+            margin: 1em 0;
+            font-family: monospace;
+        }
+        kbd {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 0.1em 0.4em;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        ul, ol {
+            margin: 1em 0;
+            padding-left: 2em;
+        }
+        li {
+            margin: 0.5em 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
+        }
+        th, td {
+            padding: 0.75em;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #512bd4;
+            color: white;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .aaa-pattern {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1em;
+            margin: 1em 0;
+        }
+        .aaa-section {
+            background-color: #f8f9fa;
+            padding: 1em;
+            border-radius: 4px;
+            border-left: 3px solid #512bd4;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <header role="banner">
+        <h1>Writing and Running Integration Tests for ASP.NET Core APIs</h1>
+        <p>Testing complete workflows from HTTP requests to database operations</p>
+    </header>
+
+    <main id="main-content" role="main">
+        <section aria-labelledby="overview">
+            <h2 id="overview">Overview</h2>
+            <p>This tutorial demonstrates how to write comprehensive integration tests for ASP.NET Core APIs. You will learn to:</p>
+            <ul>
+                <li>Create integration tests for GET endpoints</li>
+                <li>Test POST endpoints with JSON data</li>
+                <li>Verify database integration and data persistence</li>
+                <li>Run integration tests and interpret results</li>
+                <li>Validate complete API workflows in production-like conditions</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="first-test">
+            <h2 id="first-test">Creating Your First Integration Test</h2>
+            
+            <h3>Testing the GET Endpoint</h3>
+            <p>Create a test method to verify that the GET products endpoint returns a success status code:</p>
+            
+            <pre><code class="language-csharp">[Fact]
+public async Task GetProducts_ReturnsSuccessStatusCode()
+{
+    // Act
+    var response = await _client.GetAsync("/api/products");
+    
+    // Assert
+    response.EnsureSuccessStatusCode();
+}</code></pre>
+            
+            <h3>Understanding the Test Components</h3>
+            
+            <h4>[Fact] Attribute</h4>
+            <pre><code class="language-csharp">[Fact]</code></pre>
+            <p>Marks this method as an xUnit test that takes no parameters and will be executed by the test runner.</p>
+            
+            <h4>Making the HTTP Request</h4>
+            <pre><code class="language-csharp">var response = await _client.GetAsync("/api/products");</code></pre>
+            
+            <div class="concept-box">
+                <p><strong>What Happens Here:</strong> This sends a real HTTP GET request through your application's complete middleware pipeline:</p>
+                <ol>
+                    <li>The request passes through routing middleware</li>
+                    <li>Reaches the ProductsController</li>
+                    <li>Executes the GetProducts action method</li>
+                    <li>Queries the in-memory database</li>
+                    <li>Serializes the results to JSON</li>
+                    <li>Returns the HTTP response</li>
+                </ol>
+                <p>This tests the entire request/response cycle, not just isolated components.</p>
+            </div>
+            
+            <h4>Asserting Success</h4>
+            <pre><code class="language-csharp">response.EnsureSuccessStatusCode();</code></pre>
+            
+            <div class="concept-box">
+                <p><strong>EnsureSuccessStatusCode():</strong> This method:</p>
+                <ul>
+                    <li>Verifies the status code is in the 2xx range (200-299)</li>
+                    <li>Throws an exception if the status code indicates an error</li>
+                    <li>Makes the test fail automatically for 4xx or 5xx responses</li>
+                    <li>Provides clear error messages when the assertion fails</li>
+                </ul>
+            </div>
+        </section>
+
+        <section aria-labelledby="post-test">
+            <h2 id="post-test">Testing the POST Endpoint</h2>
+            
+            <h3>Creating a POST Test Method</h3>
+            <p>Create a test to verify that the POST endpoint successfully creates a new product:</p>
+            
+            <pre><code class="language-csharp">[Fact]
+public async Task CreateProduct_WithValidData_ReturnsCreatedResponse()
+{
+    // Arrange
+    var newProduct = new
+    {
+        Name = "Test Product",
+        Price = 29.99
+    };
+    
+    // Act
+    var response = await _client.PostAsJsonAsync("/api/products", newProduct);
+    
+    // Assert
+    Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+    
+    var createdProduct = await response.Content.ReadFromJsonAsync&lt;Product&gt;();
+    Assert.NotNull(createdProduct);
+    Assert.Equal("Test Product", createdProduct.Name);
+    Assert.Equal(29.99m, createdProduct.Price);
+}</code></pre>
+            
+            <h3>Breaking Down the Test</h3>
+            
+            <div class="aaa-pattern">
+                <div class="aaa-section">
+                    <h4>Arrange</h4>
+                    <pre><code class="language-csharp">var newProduct = new
+{
+    Name = "Test Product",
+    Price = 29.99
+};</code></pre>
+                    <p>Creates test data representing the product to be created.</p>
+                </div>
+                
+                <div class="aaa-section">
+                    <h4>Act</h4>
+                    <pre><code class="language-csharp">var response = await _client
+    .PostAsJsonAsync(
+        "/api/products", 
+        newProduct);</code></pre>
+                    <p>Sends HTTP POST request with JSON data to create the product.</p>
+                </div>
+                
+                <div class="aaa-section">
+                    <h4>Assert</h4>
+                    <pre><code class="language-csharp">Assert.Equal(
+    HttpStatusCode.Created, 
+    response.StatusCode);
+
+var createdProduct = await response
+    .Content
+    .ReadFromJsonAsync&lt;Product&gt;();
+    
+Assert.NotNull(createdProduct);
+Assert.Equal("Test Product", 
+    createdProduct.Name);</code></pre>
+                    <p>Verifies status code and response data.</p>
+                </div>
+            </div>
+            
+            <h3>Understanding JSON Serialization</h3>
+            
+            <h4>Sending JSON Data</h4>
+            <div class="concept-box">
+                <p><strong>PostAsJsonAsync Method:</strong> This convenience method:</p>
+                <ul>
+                    <li>Automatically serializes the object to JSON</li>
+                    <li>Sets the <code>Content-Type</code> header to <code>application/json</code></li>
+                    <li>Sends the JSON in the request body</li>
+                    <li>Returns the HTTP response</li>
+                </ul>
+                
+                <p><strong>Alternative Manual Approach:</strong></p>
+                <pre><code class="language-csharp">var jsonString = JsonSerializer.Serialize(newProduct);
+var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+var response = await _client.PostAsync("/api/products", content);</code></pre>
+                <p>The <code>PostAsJsonAsync</code> method handles all of this automatically.</p>
+            </div>
+            
+            <h3>What This Test Validates</h3>
+            <div class="concept-box">
+                <p><strong>Complete Workflow Testing:</strong> This test verifies:</p>
+                <ol>
+                    <li><strong>HTTP Routing:</strong> Request reaches the correct controller action</li>
+                    <li><strong>Model Binding:</strong> JSON is deserialized to Product object</li>
+                    <li><strong>Validation:</strong> Data annotations are enforced (if present)</li>
+                    <li><strong>Business Logic:</strong> Controller properly processes the request</li>
+                    <li><strong>Database Operations:</strong> Product is added to the database</li>
+                    <li><strong>Response Creation:</strong> 201 Created status is returned</li>
+                    <li><strong>Response Data:</strong> Created product is included in response body</li>
+                </ol>
+            </div>
+            
+            <h3>Multiple Assertions</h3>
+            <pre><code class="language-csharp">// Assert status code
+Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+// Read and deserialize response content
+var createdProduct = await response.Content.ReadFromJsonAsync&lt;Product&gt;();
+
+// Verify response data
+Assert.NotNull(createdProduct);
+Assert.Equal("Test Product", createdProduct.Name);
+Assert.Equal(29.99m, createdProduct.Price);</code></pre>
+            
+            <div class="concept-box">
+                <p><strong>Why Multiple Assertions?</strong></p>
+                <ul>
+                    <li><strong>Status Code:</strong> Confirms the operation succeeded (201 Created)</li>
+                    <li><strong>Not Null:</strong> Ensures a product was returned in the response</li>
+                    <li><strong>Property Values:</strong> Verifies the response contains expected data</li>
+                </ul>
+                <p>Together, these assertions provide comprehensive validation of the endpoint's behavior.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="database-test">
+            <h2 id="database-test">Testing Database Integration</h2>
+            
+            <h3>Why Test Database Persistence?</h3>
+            <div class="key-point">
+                <p><strong>Beyond HTTP Responses:</strong> While the previous test verified the HTTP response, it doesn't confirm that data was actually saved to the database. This test directly queries the database to ensure persistence works correctly.</p>
+            </div>
+            
+            <h3>Creating the Database Integration Test</h3>
+            <pre><code class="language-csharp">[Fact]
+public async Task CreateProduct_SavesToDatabase()
+{
+    // Arrange
+    var newProduct = new
+    {
+        Name = "Database Test Product",
+        Price = 49.99
+    };
+    
+    // Act
+    var response = await _client.PostAsJsonAsync("/api/products", newProduct);
+    
+    // Assert - Verify HTTP response
+    response.EnsureSuccessStatusCode();
+    
+    // Assert - Verify database persistence
+    using var scope = _factory.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService&lt;AppDbContext&gt;();
+    
+    var savedProduct = await dbContext.Products
+        .FirstOrDefaultAsync(p => p.Name == "Database Test Product");
+    
+    Assert.NotNull(savedProduct);
+    Assert.Equal(49.99m, savedProduct.Price);
+}</code></pre>
+            
+            <h3>Understanding Database Access in Tests</h3>
+            
+            <h4>Creating a Service Scope</h4>
+            <pre><code class="language-csharp">using var scope = _factory.Services.CreateScope();
+var dbContext = scope.ServiceProvider.GetRequiredService&lt;AppDbContext&gt;();</code></pre>
+            
+            <div class="concept-box">
+                <p><strong>Why Create a Scope?</strong></p>
+                <ul>
+                    <li><strong>DbContext Lifetime:</strong> DbContext is registered as scoped, meaning one instance per request</li>
+                    <li><strong>Service Isolation:</strong> Creating a scope provides a fresh DbContext instance</li>
+                    <li><strong>Proper Disposal:</strong> The <code>using</code> statement ensures proper cleanup</li>
+                    <li><strong>Avoiding Conflicts:</strong> Prevents interference with the DbContext used by the HTTP request</li>
+                </ul>
+            </div>
+            
+            <h4>Querying the Database</h4>
+            <pre><code class="language-csharp">var savedProduct = await dbContext.Products
+    .FirstOrDefaultAsync(p => p.Name == "Database Test Product");</code></pre>
+            
+            <div class="concept-box">
+                <p><strong>Direct Database Query:</strong> This LINQ query:</p>
+                <ul>
+                    <li>Queries the in-memory database directly</li>
+                    <li>Searches for a product with the specific name</li>
+                    <li>Returns the first matching product or null</li>
+                    <li>Verifies the product was actually persisted</li>
+                </ul>
+            </div>
+            
+            <h4>Verifying Persistence</h4>
+            <pre><code class="language-csharp">Assert.NotNull(savedProduct);
+Assert.Equal(49.99m, savedProduct.Price);</code></pre>
+            
+            <div class="concept-box">
+                <p><strong>Assertions Confirm:</strong></p>
+                <ul>
+                    <li>The product was saved to the database (not null)</li>
+                    <li>The price was stored correctly</li>
+                    <li>The complete workflow from HTTP request to database works</li>
+                </ul>
+            </div>
+            
+            <h3>Complete Workflow Validation</h3>
+            <div class="success-box">
+                <p><strong>End-to-End Verification:</strong> This test confirms that the complete workflow functions correctly:</p>
+                <ol>
+                    <li>HTTP POST request is received</li>
+                    <li>JSON data is deserialized to Product object</li>
+                    <li>Controller processes the request</li>
+                    <li>Product is added to DbContext</li>
+                    <li><code>SaveChangesAsync()</code> persists to database</li>
+                    <li>HTTP response is returned</li>
+                    <li>Data remains in database after request completes</li>
+                </ol>
+            </div>
+        </section>
+
+        <section aria-labelledby="running-tests">
+            <h2 id="running-tests">Running Integration Tests</h2>
+            
+            <h3>Opening the Terminal</h3>
+            <div class="workflow-step">
+                <strong>Step 1:</strong> Navigate to Terminal in the top menu
+            </div>
+            <div class="workflow-step">
+                <strong>Step 2:</strong> Select "New Terminal" to open a new terminal window
+            </div>
+            
+            <h3>Executing All Tests</h3>
+            <p>Run all integration tests in the project:</p>
+            
+            <div class="command-box">
+                <code>dotnet test</code>
+            </div>
+            
+            <h3>Understanding Test Execution</h3>
+            <div class="concept-box">
+                <p><strong>What Happens During Test Execution:</strong></p>
+                <ol>
+                    <li>The test framework discovers all test methods</li>
+                    <li>CustomWebApplicationFactory creates an in-memory test server</li>
+                    <li>The in-memory database is configured and created</li>
+                    <li>Each test method runs in isolation</li>
+                    <li>HTTP requests are sent to the test server</li>
+                    <li>The full application pipeline processes each request</li>
+                    <li>Test assertions verify expected behavior</li>
+                    <li>Results are reported for each test</li>
+                </ol>
+            </div>
+            
+            <h3>Observing Test Results</h3>
+            <div class="test-output">
+                <pre>Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:     3, Skipped:     0, Total:     3, Duration: 1.2s
+
+Test Run Successful.
+Total tests: 3
+     Passed: 3
+     Failed: 0
+  Skipped: 0
+ Total time: 1.2 Seconds</pre>
+            </div>
+            
+            <h3>Interpreting the Results</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                        <th>Meaning</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Total</strong></td>
+                        <td>3</td>
+                        <td>Three integration tests were executed</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Passed</strong></td>
+                        <td>3</td>
+                        <td>All tests passed successfully</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Failed</strong></td>
+                        <td>0</td>
+                        <td>No tests failed</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Duration</strong></td>
+                        <td>1.2s</td>
+                        <td>Total time to run all integration tests</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="success-box">
+                <p><strong>All Tests Passed:</strong> The successful test run confirms that your API endpoints work correctly in realistic scenarios with:</p>
+                <ul>
+                    <li>Actual HTTP requests through the middleware pipeline</li>
+                    <li>Real routing and controller execution</li>
+                    <li>Database operations using the in-memory provider</li>
+                    <li>Complete request/response serialization</li>
+                </ul>
+            </div>
+        </section>
+
+        <section aria-labelledby="complete-test-class">
+            <h2 id="complete-test-class">Complete Integration Test Class</h2>
+            
+            <h3>Full Test Class Implementation</h3>
+            <pre><code class="language-csharp">using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using System.Net;
+using System.Net.Http.Json;
+using WebApplicationFactoryDemo;
+using WebApplicationFactoryDemo.Data;
+using WebApplicationFactoryDemo.Models;
+
+namespace ECommerceAPI.IntegrationTests;
+
+public class ProductsControllerIntegrationTests 
+    : IClassFixture&lt;CustomWebApplicationFactory&lt;Program&gt;&gt;
+{
+    private readonly HttpClient _client;
+    private readonly CustomWebApplicationFactory&lt;Program&gt; _factory;
+    
+    public ProductsControllerIntegrationTests(
+        CustomWebApplicationFactory&lt;Program&gt; factory)
+    {
+        _factory = factory;
+        _client = factory.CreateClient();
+    }
+    
+    [Fact]
+    public async Task GetProducts_ReturnsSuccessStatusCode()
+    {
+        // Act
+        var response = await _client.GetAsync("/api/products");
+        
+        // Assert
+        response.EnsureSuccessStatusCode();
+    }
+    
+    [Fact]
+    public async Task CreateProduct_WithValidData_ReturnsCreatedResponse()
+    {
+        // Arrange
+        var newProduct = new
+        {
+            Name = "Test Product",
+            Price = 29.99
+        };
+        
+        // Act
+        var response = await _client.PostAsJsonAsync("/api/products", newProduct);
+        
+        // Assert
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        
+        var createdProduct = await response.Content.ReadFromJsonAsync&lt;Product&gt;();
+        Assert.NotNull(createdProduct);
+        Assert.Equal("Test Product", createdProduct.Name);
+        Assert.Equal(29.99m, createdProduct.Price);
+    }
+    
+    [Fact]
+    public async Task CreateProduct_SavesToDatabase()
+    {
+        // Arrange
+        var newProduct = new
+        {
+            Name = "Database Test Product",
+            Price = 49.99
+        };
+        
+        // Act
+        var response = await _client.PostAsJsonAsync("/api/products", newProduct);
+        
+        // Assert - Verify HTTP response
+        response.EnsureSuccessStatusCode();
+        
+        // Assert - Verify database persistence
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService&lt;AppDbContext&gt;();
+        
+        var savedProduct = await dbContext.Products
+            .FirstOrDefaultAsync(p => p.Name == "Database Test Product");
+        
+        Assert.NotNull(savedProduct);
+        Assert.Equal(49.99m, savedProduct.Price);
+    }
+}</code></pre>
+            
+            <h3>Test Class Structure</h3>
+            <div class="concept-box">
+                <p><strong>Key Components:</strong></p>
+                
+                <h4>1. IClassFixture Setup</h4>
+                <ul>
+                    <li>Creates one test server instance for all tests</li>
+                    <li>Improves performance by reusing the server</li>
+                    <li>Automatically disposes resources after tests complete</li>
+                </ul>
+                
+                <h4>2. Constructor Initialization</h4>
+                <ul>
+                    <li>Receives WebApplicationFactory via dependency injection</li>
+                    <li>Creates HttpClient for making test requests</li>
+                    <li>Stores factory reference for database access</li>
+                </ul>
+                
+                <h4>3. Test Methods</h4>
+                <ul>
+                    <li><strong>GetProducts:</strong> Tests basic GET endpoint functionality</li>
+                    <li><strong>CreateProduct_WithValidData:</strong> Tests POST with JSON data</li>
+                    <li><strong>CreateProduct_SavesToDatabase:</strong> Verifies database persistence</li>
+                </ul>
+            </div>
+        </section>
+
+        <section aria-labelledby="test-coverage">
+            <h2 id="test-coverage">What These Tests Validate</h2>
+            
+            <h3>Successful Response Testing</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Test</th>
+                        <th>Validates</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>GetProducts_ReturnsSuccessStatusCode</code></td>
+                        <td>
+                            <ul>
+                                <li>GET endpoint is reachable</li>
+                                <li>Returns 2xx status code</li>
+                                <li>Routing works correctly</li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><code>CreateProduct_WithValidData_ReturnsCreatedResponse</code></td>
+                        <td>
+                            <ul>
+                                <li>POST endpoint accepts JSON</li>
+                                <li>Returns 201 Created</li>
+                                <li>Response contains product data</li>
+                                <li>Model binding works</li>
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Database Integration Testing</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Test</th>
+                        <th>Validates</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>CreateProduct_SavesToDatabase</code></td>
+                        <td>
+                            <ul>
+                                <li>Data persists to database</li>
+                                <li>SaveChanges executes successfully</li>
+                                <li>Product is queryable after creation</li>
+                                <li>Complete workflow functions end-to-end</li>
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Comprehensive API Validation</h3>
+            <div class="success-box">
+                <p><strong>Together, these tests provide comprehensive validation:</strong></p>
+                <ul>
+                    <li><strong>HTTP Layer:</strong> Routing, status codes, request/response handling</li>
+                    <li><strong>Application Layer:</strong> Controllers, model binding, validation</li>
+                    <li><strong>Data Layer:</strong> Database operations, persistence, queries</li>
+                    <li><strong>Integration:</strong> All layers working together correctly</li>
+                </ul>
+            </div>
+        </section>
+
+        <section aria-labelledby="additional-tests">
+            <h2 id="additional-tests">Additional Integration Test Scenarios</h2>
+            
+            <h3>Testing Error Responses</h3>
+            <pre><code class="language-csharp">[Fact]
+public async Task GetProduct_NonExistentId_ReturnsNotFound()
+{
+    // Act
+    var response = await _client.GetAsync("/api/products/99999");
+    
+    // Assert
+    Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+}
+
+[Fact]
+public async Task CreateProduct_InvalidData_ReturnsBadRequest()
+{
+    // Arrange
+    var invalidProduct = new
+    {
+        Name = "", // Invalid - empty name
+        Price = -10 // Invalid - negative price
+    };
+    
+    // Act
+    var response = await _client.PostAsJsonAsync("/api/products", invalidProduct);
+    
+    // Assert
+    Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+}</code></pre>
+            
+            <h3>Testing PUT and DELETE Operations</h3>
+            <pre><code class="language-csharp">[Fact]
+public async Task UpdateProduct_ValidData_ReturnsNoContent()
+{
+    // Arrange - Create a product first
+    var createResponse = await _client.PostAsJsonAsync("/api/products", new
+    {
+        Name = "Original Name",
+        Price = 10.00
+    });
+    
+    var createdProduct = await createResponse.Content.ReadFromJsonAsync&lt;Product&gt;();
+    
+    // Act - Update the product
+    var updatedProduct = new
+    {
+        Id = createdProduct.Id,
+        Name = "Updated Name",
+        Price = 15.00
+    };
+    
+    var response = await _client.PutAsJsonAsync(
+        $"/api/products/{createdProduct.Id}", 
+        updatedProduct);
+    
+    // Assert
+    Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+}
+
+[Fact]
+public async Task DeleteProduct_ExistingId_ReturnsNoContent()
+{
+    // Arrange - Create a product first
+    var createResponse = await _client.PostAsJsonAsync("/api/products", new
+    {
+        Name = "To Be Deleted",
+        Price = 5.00
+    });
+    
+    var createdProduct = await createResponse.Content.ReadFromJsonAsync&lt;Product&gt;();
+    
+    // Act
+    var response = await _client.DeleteAsync($"/api/products/{createdProduct.Id}");
+    
+    // Assert
+    Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    
+    // Verify deletion
+    var getResponse = await _client.GetAsync($"/api/products/{createdProduct.Id}");
+    Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
+}</code></pre>
+            
+            <h3>Testing with Multiple Items</h3>
+            <pre><code class="language-csharp">[Fact]
+public async Task GetProducts_ReturnsMultipleProducts()
+{
+    // Arrange - Create several products
+    var products = new[]
+    {
+        new { Name = "Product 1", Price = 10.00 },
+        new { Name = "Product 2", Price = 20.00 },
+        new { Name = "Product 3", Price = 30.00 }
+    };
+    
+    foreach (var product in products)
+    {
+        await _client.PostAsJsonAsync("/api/products", product);
+    }
+    
+    // Act
+    var response = await _client.GetAsync("/api/products");
+    
+    // Assert
+    response.EnsureSuccessStatusCode();
+    var retrievedProducts = await response.Content
+        .ReadFromJsonAsync&lt;List&lt;Product&gt;&gt;();
+    
+    Assert.NotNull(retrievedProducts);
+    Assert.True(retrievedProducts.Count >= 3);
+}</code></pre>
+        </section>
+
+        <section aria-labelledby="best-practices-recap">
+            <h2 id="best-practices-recap">Integration Testing Best Practices</h2>
+            
+            <h3>Test Design Principles</h3>
+            <ul>
+                <li><strong>Test Complete Workflows:</strong> Integration tests should validate entire request/response cycles</li>
+                <li><strong>Use Realistic Data:</strong> Test with data that resembles production scenarios</li>
+                <li><strong>Verify Multiple Aspects:</strong> Check status codes, response data, and database state</li>
+                <li><strong>Test Both Success and Failure:</strong> Include tests for error conditions</li>
+                <li><strong>Keep Tests Independent:</strong> Each test should work regardless of execution order</li>
+            </ul>
+            
+            <h3>Database Testing Strategy</h3>
+            <ul>
+                <li><strong>Use In-Memory Database:</strong> Fast execution without external dependencies</li>
+                <li><strong>Fresh State Per Test:</strong> Each test starts with a clean database</li>
+                <li><strong>Verify Persistence:</strong> Query the database directly when testing data operations</li>
+                <li><strong>Test Relationships:</strong> Verify foreign keys and navigation properties work correctly</li>
+            </ul>
+            
+            <h3>HTTP Testing Techniques</h3>
+            <ul>
+                <li><strong>Use Appropriate Methods:</strong> GetAsync, PostAsJsonAsync, PutAsJsonAsync, DeleteAsync</li>
+                <li><strong>Verify Status Codes:</strong> Check for 200 OK, 201 Created, 204 No Content, 404 Not Found, etc.</li>
+                <li><strong>Read Response Content:</strong> Deserialize JSON to verify response data</li>
+                <li><strong>Test Headers:</strong> Verify Location headers for created resources</li>
+            </ul>
+            
+            <h3>Test Organization</h3>
+            <ul>
+                <li><strong>One Test Class Per Controller:</strong> Keep related tests together</li>
+                <li><strong>Descriptive Test Names:</strong> Names should explain what's being tested</li>
+                <li><strong>Arrange-Act-Assert:</strong> Follow AAA pattern for clarity</li>
+                <li><strong>Share Test Infrastructure:</strong> Use IClassFixture to share WebApplicationFactory</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="key-concepts">
+            <h2 id="key-concepts">Key Concepts Summary</h2>
+            
+            <dl>
+                <dt>Integration Test</dt>
+                <dd>A test that validates multiple components working together, from HTTP request through the application stack to the database and back, ensuring complete workflows function correctly.</dd>
+                
+                <dt>PostAsJsonAsync</dt>
+                <dd>An HttpClient extension method that automatically serializes an object to JSON, sets the correct content type, and sends it as the request body in a POST request.</dd>
+                
+                <dt>EnsureSuccessStatusCode</dt>
+                <dd>A method that verifies an HTTP response has a 2xx success status code and throws an exception if the status indicates an error, causing the test to fail.</dd>
+                
+                <dt>ReadFromJsonAsync</dt>
+                <dd>An extension method that reads the HTTP response content and deserializes it from JSON to a specified .NET type.</dd>
+                
+                <dt>Service Scope</dt>
+                <dd>A container for scoped services that are created and disposed together. Required when accessing scoped services like DbContext outside of a web request.</dd>
+                
+                <dt>Database Persistence Testing</dt>
+                <dd>Verifying that data operations result in actual database changes by querying the database directly, not just checking HTTP responses.</dd>
+                
+                <dt>HttpStatusCode</dt>
+                <dd>An enumeration of standard HTTP status codes (200 OK, 201 Created, 404 Not Found, etc.) used to verify endpoint responses in tests.</dd>
+                
+                <dt>Complete Workflow Validation</dt>
+                <dd>Testing the entire path from HTTP request through routing, controllers, business logic, database operations, and back to the HTTP response.</dd>
+            </dl>
+        </section>
+
+        <section aria-labelledby="conclusion">
+            <h2 id="conclusion">Conclusion</h2>
+            
+            <p>You have successfully created comprehensive integration tests for an ASP.NET Core API. This tutorial demonstrated:</p>
+            
+            <ul>
+                <li><strong>GET Endpoint Testing:</strong> Verified successful retrieval of resources</li>
+                <li><strong>POST Endpoint Testing:</strong> Tested resource creation with JSON data</li>
+                <li><strong>Database Integration:</strong> Confirmed data persists correctly to the database</li>
+                <li><strong>Multiple Assertions:</strong> Validated both HTTP responses and database state</li>
+                <li><strong>Test Execution:</strong> Ran all tests and verified successful results</li>
+            </ul>
+            
+            <div class="success-box">
+                <h3>What You've Achieved</h3>
+                <p>Your integration tests now provide:</p>
+                <ul>
+                    <li><strong>Complete Coverage:</strong> Tests validate entire request/response workflows</li>
+                    <li><strong>Production Confidence:</strong> Realistic scenarios ensure API works correctly</li>
+                    <li><strong>Database Verification:</strong> Confirms data operations complete successfully</li>
+                    <li><strong>Automated Validation:</strong> Tests can run automatically in CI/CD pipelines</li>
+                    <li><strong>Regression Prevention:</strong> Catch breaking changes before deployment</li>
+                </ul>
+            </div>
+            
+            <div class="key-point">
+                <h3>Comprehensive API Validation</h3>
+                <p>These integration tests validate complete workflows from HTTP requests through your application's middleware, controllers, and database operations, giving you confidence that your API works correctly in production-like conditions.</p>
+                
+                <p><strong>Key Benefits:</strong></p>
+                <ul>
+                    <li><strong>Real-World Testing:</strong> Tests use actual HTTP requests, not mocked objects</li>
+                    <li><strong>Full Pipeline:</strong> Validates routing, model binding, validation, and business logic</li>
+                    <li><strong>Database Integration:</strong> Confirms data persistence works correctly</li>
+                    <li><strong>Fast Execution:</strong> In-memory database enables quick test runs</li>
+                    <li><strong>Isolated Testing:</strong> Each test runs independently without side effects</li>
+                    <li><strong>Easy Maintenance:</strong> WebApplicationFactory simplifies test setup</li>
+                </ul>
+            </div>
+            
+            <p>With these integration tests in place, you can confidently develop and deploy your ASP.NET Core APIs, knowing that the complete application stack functions correctly from HTTP request to database response.</p>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <p>Writing and Running Integration Tests for ASP.NET Core APIs - Complete Workflow Validation with WebApplicationFactory</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,370 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit Testing Controllers and Services - AAA Pattern Tutorial</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #ffffff;
+            color: #333;
+        }
+        
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+        
+        .skip-link:focus {
+            position: static;
+            width: auto;
+            height: auto;
+            margin: 10px;
+            padding: 10px;
+            background: #fff;
+            border: 2px solid #000;
+            z-index: 1000;
+        }
+        
+        header {
+            border-bottom: 3px solid #0066cc;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        h1 {
+            color: #0066cc;
+            margin: 0 0 0.5rem 0;
+        }
+        
+        h2 {
+            color: #0066cc;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        h3 {
+            color: #0052a3;
+            margin-top: 1.5rem;
+        }
+        
+        h4 {
+            color: #004080;
+            margin-top: 1rem;
+        }
+        
+        code {
+            background-color: #f5f5f5;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #d73a49;
+        }
+        
+        pre {
+            background-color: #f6f8fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 1rem;
+            overflow-x: auto;
+            line-height: 1.45;
+        }
+        
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: #24292e;
+            font-size: 0.875rem;
+        }
+        
+        .concept-box {
+            background-color: #e7f3ff;
+            border-left: 4px solid #0066cc;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+        
+        .concept-box h4 {
+            margin-top: 0;
+            color: #0066cc;
+        }
+        
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+        
+        .code-explanation {
+            background-color: #f0f0f0;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+        
+        ul, ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+        }
+        
+        li {
+            margin: 0.5rem 0;
+        }
+        
+        dl {
+            margin: 1rem 0;
+        }
+        
+        dt {
+            font-weight: 600;
+            color: #0066cc;
+            margin-top: 1rem;
+        }
+        
+        dd {
+            margin-left: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        footer {
+            margin-top: 3rem;
+            padding-top: 1rem;
+            border-top: 2px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            pre {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <header role="banner">
+        <h1>Unit Testing Controllers and Services</h1>
+        <p>Testing with the Arrange-Act-Assert Pattern and Mocking</p>
+    </header>
+
+    <main id="main-content" role="main">
+        
+        <section aria-labelledby="learning-objectives">
+            <h2 id="learning-objectives">Learning Objectives</h2>
+            <ul>
+                <li>Write comprehensive unit tests for controllers and services using the AAA (Arrange-Act-Assert) pattern</li>
+                <li>Handle dependencies effectively with mocking frameworks</li>
+                <li>Test both success scenarios and error conditions</li>
+                <li>Execute and review test results using dotnet test command</li>
+                <li>Validate business logic and exception handling in services</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="controller-testing">
+            <h2 id="controller-testing">Testing Controllers with the AAA Pattern</h2>
+            
+            <p>Unit tests for controllers verify that HTTP endpoints return the correct responses. We use the Arrange-Act-Assert pattern to structure our tests clearly and maintain consistency.</p>
+
+            <h3>Testing the GetUser Method</h3>
+            
+            <p>Let's examine a complete test that verifies the controller returns the correct user when a valid ID is provided:</p>
+
+            <pre><code>var okayResult = Assert.IsType&lt;OkObjectResult&gt;(result);
+var returnedUser = Assert.IsType&lt;User&gt;(okayResult.Value);
+
+Assert.Equal(expectedUserId, returnedUser.Id);
+Assert.Equal(expectedUserName, returnedUser.Name);</code></pre>
+
+            <div class="concept-box">
+                <h4>The Assert Section Explained</h4>
+                <p>The assert section verifies three critical aspects:</p>
+                <ol>
+                    <li><strong>Result Type</strong>: Confirms the result is an <code>OkObjectResult</code></li>
+                    <li><strong>Value Type</strong>: Verifies the value inside that result is a <code>User</code> object</li>
+                    <li><strong>Property Values</strong>: Ensures the returned user has the expected ID and name properties</li>
+                </ol>
+                <p>Each assertion is specific and provides clear diagnostic information if something fails.</p>
+            </div>
+
+            <h3>Testing Error Conditions</h3>
+            
+            <p>Testing how your controller handles errors is just as important as testing success scenarios. Here's a test that verifies behavior when a user doesn't exist:</p>
+
+            <pre><code>public void GetUser_WithInvalidId_ReturnsNotFound()
+{
+    // Arrange - Configure mock to return null (user not found)
+    
+    // Act - Call the GetUser method on controller
+    
+    // Assert - Verify NotFound result is returned
+}</code></pre>
+
+            <div class="code-explanation">
+                <p><strong>Line 40:</strong> The mock is configured to return <code>null</code>, simulating a scenario where the user wasn't found in the database.</p>
+                <p><strong>Line 48:</strong> The assertion verifies that the controller returns a <code>NotFound</code> result, which translates to an HTTP 404 response.</p>
+            </div>
+
+        </section>
+
+        <section aria-labelledby="service-testing">
+            <h2 id="service-testing">Testing Business Services</h2>
+            
+            <p>Service layer tests validate business logic, data validation, and proper exception handling. Unlike controller tests, service tests focus on the core application logic rather than HTTP concerns.</p>
+
+            <h3>Testing User Creation with Email Validation</h3>
+            
+            <p>The following test validates the service's user creation logic, including email uniqueness checks:</p>
+
+            <pre><code>// Arrange
+// Mock repository to indicate email doesn't exist
+// Mock repository to return created user
+
+// Act
+var result = await userService.CreateUser(newUser);
+
+// Assert
+// Verify user was created with expected properties</code></pre>
+
+            <div class="concept-box">
+                <h4>Mocking Repository Dependencies</h4>
+                <p>In this service test, the repository dependency is mocked with two different behaviors:</p>
+                <ol>
+                    <li><strong>Email Check</strong>: Configure the mock to return false, indicating the email doesn't already exist</li>
+                    <li><strong>User Creation</strong>: Configure what the repository returns when creating the user</li>
+                </ol>
+                <p>This approach allows testing the service's business logic without requiring an actual database connection.</p>
+            </div>
+
+            <h3>Testing Exception Handling for Duplicate Emails</h3>
+            
+            <p>Services should throw appropriate exceptions when business rules are violated. Here's how to test that duplicate emails are properly rejected:</p>
+
+            <pre><code>public async Task CreateUser_WithDuplicateEmail_ThrowsException()
+{
+    // Arrange
+    // Mock repository to indicate email already exists
+    
+    // Act & Assert
+    await Assert.ThrowsAsync&lt;ArgumentException&gt;(
+        async () => await userService.CreateUser(duplicateUser)
+    );
+}</code></pre>
+
+            <div class="code-explanation">
+                <p><strong>Line 52:</strong> <code>Assert.ThrowsAsync</code> serves a dual purpose—it both executes the method and verifies that the correct exception type (<code>ArgumentException</code>) is thrown.</p>
+                <p>This ensures the service properly enforces the business rule that email addresses must be unique.</p>
+            </div>
+
+        </section>
+
+        <section aria-labelledby="running-tests">
+            <h2 id="running-tests">Running and Reviewing Test Results</h2>
+            
+            <p>After writing tests, you need to execute them to verify your implementation works correctly. The .NET CLI provides straightforward commands for running tests.</p>
+
+            <h3>Executing Tests with dotnet test</h3>
+            
+            <p>Open a terminal window in your solution directory and run:</p>
+
+            <pre><code>dotnet test</code></pre>
+
+            <p>This command discovers and executes all test methods in your solution. The test runner provides output showing:</p>
+            <ul>
+                <li>Total number of tests executed</li>
+                <li>Number of passed tests</li>
+                <li>Number of failed tests (if any)</li>
+                <li>Execution time for each test</li>
+            </ul>
+
+            <div class="note">
+                <p><strong>Expected Output:</strong> All tests should pass, confirming that both controller and service implementations work as expected. Green checkmarks or "Passed" indicators show successful test execution.</p>
+            </div>
+
+            <h3>Using Test Explorer for Individual Tests</h3>
+            
+            <p>Visual Studio and Visual Studio Code provide a Test Explorer view that offers additional capabilities:</p>
+            <ul>
+                <li>View all tests in a hierarchical structure</li>
+                <li>Run individual tests or groups of tests</li>
+                <li>Debug specific test failures</li>
+                <li>View detailed failure messages and stack traces</li>
+                <li>Re-run only failed tests</li>
+            </ul>
+
+            <p>This visual interface makes it easy to isolate and debug specific test failures without running your entire test suite.</p>
+
+        </section>
+
+        <section aria-labelledby="testing-patterns">
+            <h2 id="testing-patterns">Key Testing Patterns and Best Practices</h2>
+            
+            <dl>
+                <dt>Arrange-Act-Assert (AAA) Pattern</dt>
+                <dd>A structured approach to writing tests with three distinct sections: setting up test data (Arrange), executing the code under test (Act), and verifying expected outcomes (Assert).</dd>
+                
+                <dt>Mocking Dependencies</dt>
+                <dd>Creating test doubles for dependencies like repositories or external services, allowing you to test code in isolation without requiring actual database connections or external systems.</dd>
+                
+                <dt>Testing Success Scenarios</dt>
+                <dd>Verifying that your code produces correct results when given valid inputs and when all dependencies behave normally.</dd>
+                
+                <dt>Testing Error Conditions</dt>
+                <dd>Ensuring your code handles invalid inputs, missing data, and failure scenarios gracefully by returning appropriate error responses or throwing expected exceptions.</dd>
+                
+                <dt>Specific Assertions</dt>
+                <dd>Writing assertions that verify exact expected outcomes rather than general conditions, providing clear diagnostic information when tests fail.</dd>
+                
+                <dt>Isolated Tests</dt>
+                <dd>Each test should verify one specific behavior and be independent of other tests, allowing tests to run in any order without affecting results.</dd>
+            </dl>
+
+        </section>
+
+        <section aria-labelledby="conclusion">
+            <h2 id="conclusion">Conclusion</h2>
+            
+            <p>In this tutorial, you've learned comprehensive unit testing techniques for ASP.NET Core applications:</p>
+            
+            <ul>
+                <li><strong>Controller Testing</strong>: Writing tests that verify HTTP endpoints return correct responses, including both success cases (OkObjectResult) and error conditions (NotFound)</li>
+                <li><strong>Service Testing</strong>: Validating business logic, data validation rules, and exception handling in service layers</li>
+                <li><strong>AAA Pattern</strong>: Structuring tests with clear Arrange, Act, and Assert sections for maintainability and readability</li>
+                <li><strong>Mocking</strong>: Isolating code under test by creating mock dependencies, allowing tests to run without external dependencies like databases</li>
+                <li><strong>Test Execution</strong>: Running tests using dotnet test command and leveraging Test Explorer for detailed test management</li>
+            </ul>
+
+            <p>These testing patterns enable you to build reliable applications with confidence. Comprehensive unit tests catch bugs early, document expected behavior, and provide a safety net for refactoring. As you continue developing, maintain the discipline of writing tests alongside your production code to ensure long-term application quality and maintainability.</p>
+
+        </section>
+
+    </main>
+
+    <footer role="contentinfo">
+        <p>Unit Testing Tutorial - Testing Controllers and Services with AAA Pattern and Mocking</p>
+    </footer>
+
+</body>
+</html>
+```

@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setting Up Your First Unit Test Project in ASP.NET Core with xUnit</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5em;
+            color: #333;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 1em;
+            overflow-x: auto;
+            border-radius: 4px;
+            border-left: 4px solid #512bd4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+        .skip-link:focus {
+            position: static;
+            width: auto;
+            height: auto;
+            margin: 10px;
+            padding: 10px;
+            background: #fff;
+            border: 2px solid #000;
+            z-index: 1000;
+        }
+        h1, h2, h3, h4 {
+            color: #512bd4;
+            margin-top: 1.5em;
+        }
+        h1 {
+            border-bottom: 3px solid #512bd4;
+            padding-bottom: 0.3em;
+        }
+        h2 {
+            border-bottom: 2px solid #e1e1e1;
+            padding-bottom: 0.2em;
+        }
+        .concept-box {
+            background-color: #f0ebff;
+            border-left: 4px solid #512bd4;
+            padding: 1em;
+            margin: 1em 0;
+            border-radius: 4px;
+        }
+        .key-point {
+            background-color: #fff4e5;
+            border-left: 4px solid #ff8c00;
+            padding: 1em;
+            margin: 1em 0;
+            border-radius: 4px;
+        }
+        .workflow-step {
+            background-color: #f0f0f0;
+            padding: 0.5em 1em;
+            margin: 0.5em 0;
+            border-radius: 4px;
+            border-left: 3px solid #512bd4;
+        }
+        .command-box {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1em;
+            border-radius: 4px;
+            margin: 1em 0;
+        }
+        .command-box code {
+            background-color: transparent;
+            color: #d4d4d4;
+        }
+        .success-box {
+            background-color: #f0fff4;
+            border-left: 4px solid #28a745;
+            padding: 1em;
+            margin: 1em 0;
+            border-radius: 4px;
+        }
+        kbd {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 0.1em 0.4em;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        ul, ol {
+            margin: 1em 0;
+            padding-left: 2em;
+        }
+        li {
+            margin: 0.5em 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
+        }
+        th, td {
+            padding: 0.75em;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #512bd4;
+            color: white;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .project-structure {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 1em;
+            margin: 1em 0;
+            font-family: monospace;
+        }
+        .file-tree {
+            list-style: none;
+            padding-left: 1em;
+        }
+        .file-tree li {
+            padding-left: 1em;
+            position: relative;
+        }
+        .file-tree li:before {
+            content: "├─";
+            position: absolute;
+            left: 0;
+        }
+        .file-tree li:last-child:before {
+            content: "└─";
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <header role="banner">
+        <h1>Setting Up Your First Unit Test Project in ASP.NET Core with xUnit</h1>
+        <p>Complete guide to creating a test project structure and running your first unit test</p>
+    </header>
+
+    <main id="main-content" role="main">
+        <section aria-labelledby="overview">
+            <h2 id="overview">Learning Objectives</h2>
+            <p>By the end of this demonstration, you will be able to:</p>
+            <ul>
+                <li>Create a complete unit test project structure using xUnit</li>
+                <li>Organize projects using a .NET solution file</li>
+                <li>Configure project references between test and application projects</li>
+                <li>Understand the essential NuGet packages for unit testing</li>
+                <li>Create and run your first test to verify the setup</li>
+            </ul>
+            
+            <div class="key-point">
+                <p><strong>Goal:</strong> You'll have a complete test project structure that's ready for writing unit tests and verification that everything is working correctly.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="prerequisites">
+            <h2 id="prerequisites">Prerequisites</h2>
+            <ul>
+                <li>.NET SDK installed (version 6.0 or later recommended)</li>
+                <li>Visual Studio Code with C# extension</li>
+                <li>Basic familiarity with command-line interface</li>
+                <li>Understanding of ASP.NET Core project structure</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="opening-terminal">
+            <h2 id="opening-terminal">Opening the Integrated Terminal</h2>
+            
+            <h3>Accessing the Terminal in Visual Studio Code</h3>
+            <div class="workflow-step">
+                <strong>Step 1:</strong> Navigate to the Terminal menu in the top menu bar
+            </div>
+            <div class="workflow-step">
+                <strong>Step 2:</strong> Select "New Terminal" from the dropdown menu
+            </div>
+            
+            <div class="concept-box">
+                <p><strong>Alternative Methods:</strong> You can also open a new terminal using:</p>
+                <ul>
+                    <li>Keyboard shortcut: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>`</kbd> (Windows/Linux) or <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>`</kbd> (Mac)</li>
+                    <li>View menu → Terminal</li>
+                </ul>
+            </div>
+            
+            <h3>Navigating to Project Destination</h3>
+            <p>Once the terminal is open, navigate to your desired project destination folder using the <code>cd</code> command.</p>
+            
+            <div class="command-box">
+                <code>cd path/to/your/projects</code>
+            </div>
+        </section>
+
+        <section aria-labelledby="creating-solution">
+            <h2 id="creating-solution">Creating a New Solution</h2>
+            
+            <h3>Why Use a Solution File?</h3>
+            <div class="concept-box">
+                <p>A solution file (.sln) organizes multiple related projects in one container, making it easier to:</p>
+                <ul>
+                    <li>Manage dependencies between projects</li>
+                    <li>Build all projects together</li>
+                    <li>Open the entire project structure in Visual Studio or VS Code</li>
+                    <li>Share configuration across multiple projects</li>
+                </ul>
+            </div>
+            
+            <h3>Creating the Solution</h3>
+            <p>Create a new solution named "MathApp" using the .NET CLI:</p>
+            
+            <div class="command-box">
+                <code>dotnet new sln -n MathApp</code>
+            </div>
+            
+            <h4>Command Breakdown</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>dotnet new</code></td>
+                        <td>Creates a new project or file from a template</td>
+                    </tr>
+                    <tr>
+                        <td><code>sln</code></td>
+                        <td>Specifies the solution file template</td>
+                    </tr>
+                    <tr>
+                        <td><code>-n MathApp</code></td>
+                        <td>Names the solution "MathApp"</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="success-box">
+                <p><strong>Success:</strong> The solution file <code>MathApp.sln</code> was created successfully in the current directory.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="creating-api-project">
+            <h2 id="creating-api-project">Creating the Main Application Project</h2>
+            
+            <h3>Creating an ASP.NET Core Web API Project</h3>
+            <p>Create the main application project that will be tested:</p>
+            
+            <div class="command-box">
+                <code>dotnet new webapi -n MathApp.API</code>
+            </div>
+            
+            <h4>Command Breakdown</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>dotnet new</code></td>
+                        <td>Creates a new project from a template</td>
+                    </tr>
+                    <tr>
+                        <td><code>webapi</code></td>
+                        <td>Specifies the ASP.NET Core Web API template</td>
+                    </tr>
+                    <tr>
+                        <td><code>-n MathApp.API</code></td>
+                        <td>Names the project "MathApp.API"</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="concept-box">
+                <h4>What Gets Created</h4>
+                <p>This command creates a new ASP.NET Core Web API project with:</p>
+                <ul>
+                    <li>Controllers folder with sample WeatherForecast controller</li>
+                    <li>Program.cs file with application configuration</li>
+                    <li>appsettings.json for configuration</li>
+                    <li>Project file (MathApp.API.csproj) with necessary dependencies</li>
+                </ul>
+            </div>
+            
+            <div class="success-box">
+                <p><strong>Result:</strong> A new ASP.NET Core Web API project is created in the <code>MathApp.API</code> folder, ready to be tested.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="creating-test-project">
+            <h2 id="creating-test-project">Creating the Test Project</h2>
+            
+            <h3>Creating an xUnit Test Project</h3>
+            <p>Create a dedicated test project using the xUnit template:</p>
+            
+            <div class="command-box">
+                <code>dotnet new xunit -n MathApp.Tests</code>
+            </div>
+            
+            <h4>Command Breakdown</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>dotnet new</code></td>
+                        <td>Creates a new project from a template</td>
+                    </tr>
+                    <tr>
+                        <td><code>xunit</code></td>
+                        <td>Specifies the xUnit test project template</td>
+                    </tr>
+                    <tr>
+                        <td><code>-n MathApp.Tests</code></td>
+                        <td>Names the test project "MathApp.Tests"</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="success-box">
+                <p><strong>Result:</strong> A new test project is created with xUnit already configured and ready to use.</p>
+            </div>
+            
+            <h3>Essential NuGet Packages Included</h3>
+            <div class="concept-box">
+                <p>The xUnit project template automatically includes these essential NuGet packages:</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Package</th>
+                            <th>Purpose</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>xunit</code></td>
+                            <td>Core xUnit testing framework with attributes and assertions</td>
+                        </tr>
+                        <tr>
+                            <td><code>Microsoft.NET.Test.Sdk</code></td>
+                            <td>Required for test discovery and execution</td>
+                        </tr>
+                        <tr>
+                            <td><code>xunit.runner.visualstudio</code></td>
+                            <td>Enables Visual Studio Test Explorer integration</td>
+                        </tr>
+                        <tr>
+                            <td><code>coverlet.collector</code></td>
+                            <td>Provides code coverage analysis capabilities</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <p>These packages work together to provide test discovery, execution, and code coverage reporting.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="adding-to-solution">
+            <h2 id="adding-to-solution">Adding Projects to the Solution</h2>
+            
+            <h3>Why Add Projects to the Solution?</h3>
+            <p>Adding projects to the solution allows you to manage them together and enables easy building, testing, and deployment of the entire application.</p>
+            
+            <h3>Adding the API Project</h3>
+            <p>Add the main API project to the solution:</p>
+            
+            <div class="command-box">
+                <code>dotnet sln add MathApp.API\MathApp.API.csproj</code>
+            </div>
+            
+            <div class="success-box">
+                <p><strong>Success:</strong> The MathApp.API project has been added to the MathApp solution.</p>
+            </div>
+            
+            <h3>Adding the Test Project</h3>
+            <p>Add the test project to the solution:</p>
+            
+            <div class="command-box">
+                <code>dotnet sln add MathApp.Tests\MathApp.Tests.csproj</code>
+            </div>
+            
+            <div class="success-box">
+                <p><strong>Success:</strong> The MathApp.Tests project has been added to the MathApp solution.</p>
+            </div>
+            
+            <h4>Command Pattern</h4>
+            <pre><code class="language-bash">dotnet sln add [path-to-project]\[project-name].csproj</code></pre>
+            
+            <div class="concept-box">
+                <p><strong>Verification:</strong> You can verify that both projects are in the solution by running:</p>
+                <div class="command-box">
+                    <code>dotnet sln list</code>
+                </div>
+                <p>This displays all projects currently in the solution.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="adding-reference">
+            <h2 id="adding-reference">Adding Project Reference</h2>
+            
+            <h3>Why Add a Project Reference?</h3>
+            <div class="concept-box">
+                <p>The test project needs a reference to the main application project so that:</p>
+                <ul>
+                    <li>Tests can access the classes and methods in the API project</li>
+                    <li>The test project can instantiate and test API components</li>
+                    <li>Changes in the API project trigger recompilation in the test project</li>
+                    <li>Dependencies are properly managed during build and deployment</li>
+                </ul>
+            </div>
+            
+            <h3>Navigating to the Test Project Directory</h3>
+            <p>First, change to the test project directory:</p>
+            
+            <div class="command-box">
+                <code>cd MathApp.Tests</code>
+            </div>
+            
+            <h3>Adding the Project Reference</h3>
+            <p>Add a reference from the test project to the API project:</p>
+            
+            <div class="command-box">
+                <code>dotnet add reference ..\MathApp.API\MathApp.API.csproj</code>
+            </div>
+            
+            <h4>Command Breakdown</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>dotnet add reference</code></td>
+                        <td>Adds a project-to-project reference</td>
+                    </tr>
+                    <tr>
+                        <td><code>..</code></td>
+                        <td>Navigates up one directory level</td>
+                    </tr>
+                    <tr>
+                        <td><code>MathApp.API\MathApp.API.csproj</code></td>
+                        <td>Path to the API project file</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="success-box">
+                <p><strong>Success:</strong> The reference has been added successfully. The test project can now access and test classes from the API project.</p>
+            </div>
+            
+            <h3>Returning to the Root Directory</h3>
+            <p>Navigate back to the root directory:</p>
+            
+            <div class="command-box">
+                <code>cd ..</code>
+            </div>
+            
+            <div class="concept-box">
+                <p><strong>What Happens Behind the Scenes:</strong> Adding a project reference updates the test project's .csproj file to include:</p>
+                <pre><code class="language-xml">&lt;ItemGroup&gt;
+  &lt;ProjectReference Include="..\MathApp.API\MathApp.API.csproj" /&gt;
+&lt;/ItemGroup&gt;</code></pre>
+            </div>
+        </section>
+
+        <section aria-labelledby="opening-project">
+            <h2 id="opening-project">Opening the Project Structure</h2>
+            
+            <h3>Opening the Folder in Visual Studio Code</h3>
+            
+            <div class="workflow-step">
+                <strong>Step 1:</strong> In Visual Studio Code, select File → Open Folder
+            </div>
+            <div class="workflow-step">
+                <strong>Step 2:</strong> Navigate to your project location (e.g., source/Coursera)
+            </div>
+            <div class="workflow-step">
+                <strong>Step 3:</strong> Select the folder containing your solution
+            </div>
+            <div class="workflow-step">
+                <strong>Step 4:</strong> Click "Select Folder" to open the project
+            </div>
+            
+            <div class="concept-box">
+                <p><strong>Alternative Method:</strong> You can also open the project from the command line:</p>
+                <div class="command-box">
+                    <code>code .</code>
+                </div>
+                <p>This opens the current directory in Visual Studio Code.</p>
+            </div>
+        </section>
+
+        <section aria-labelledby="project-structure">
+            <h2 id="project-structure">Examining the Test Project Structure</h2>
+            
+            <h3>Expanding the Test Project</h3>
+            <p>In Visual Studio Code's Explorer pane, expand the MathApp.Tests project to view its structure.</p>
+            
+            <h3>Complete Project Structure</h3>
+            <div class="project-structure">
+                <pre><code>MathApp/
+├── MathApp.sln
+├── MathApp.API/
+│   ├── Controllers/
+│   │   └── WeatherForecastController.cs
+│   ├── Properties/
+│   │   └── launchSettings.json
+│   ├── appsettings.json
+│   ├── appsettings.Development.json
+│   ├── Program.cs
+│   ├── WeatherForecast.cs
+│   └── MathApp.API.csproj
+└── MathApp.Tests/
+    ├── Usings.cs
+    ├── UnitTest1.cs
+    └── MathApp.Tests.csproj</code></pre>
+            </div>
+            
+            <h3>Important Files in the Test Project</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>File</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>MathApp.Tests.csproj</code></td>
+                        <td>Project file containing configuration and package references</td>
+                    </tr>
+                    <tr>
+                        <td><code>UnitTest1.cs</code></td>
+                        <td>Sample test class with a basic test method</td>
+                    </tr>
+                    <tr>
+                        <td><code>Usings.cs</code></td>
+                        <td>Global using directives to reduce repetitive imports</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section aria-labelledby="examining-project-file">
+            <h2 id="examining-project-file">Examining the Project Configuration</h2>
+            
+            <h3>Opening the Project File</h3>
+            <p>Select the <code>MathApp.Tests.csproj</code> file in the Explorer to examine the project configuration.</p>
+            
+            <h3>Project File Contents</h3>
+            <pre><code class="language-xml">&lt;Project Sdk="Microsoft.NET.Sdk"&gt;
+
+  &lt;PropertyGroup&gt;
+    &lt;TargetFramework&gt;net8.0&lt;/TargetFramework&gt;
+    &lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+    &lt;Nullable&gt;enable&lt;/Nullable&gt;
+
+    &lt;IsPackable&gt;false&lt;/IsPackable&gt;
+    &lt;IsTestProject&gt;true&lt;/IsTestProject&gt;
+  &lt;/PropertyGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;PackageReference Include="coverlet.collector" Version="6.0.0" /&gt;
+    &lt;PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" /&gt;
+    &lt;PackageReference Include="xunit" Version="2.6.2" /&gt;
+    &lt;PackageReference Include="xunit.runner.visualstudio" Version="2.5.4" /&gt;
+  &lt;/ItemGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;ProjectReference Include="..\MathApp.API\MathApp.API.csproj" /&gt;
+  &lt;/ItemGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;Using Include="Xunit" /&gt;
+  &lt;/ItemGroup&gt;
+
+&lt;/Project&gt;</code></pre>
+            
+            <h3>Understanding the Project Configuration</h3>
+            
+            <h4>PropertyGroup Section</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Value</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>TargetFramework</code></td>
+                        <td>net8.0</td>
+                        <td>Specifies the .NET version to target</td>
+                    </tr>
+                    <tr>
+                        <td><code>ImplicitUsings</code></td>
+                        <td>enable</td>
+                        <td>Automatically includes common namespaces</td>
+                    </tr>
+                    <tr>
+                        <td><code>Nullable</code></td>
+                        <td>enable</td>
+                        <td>Enables nullable reference types for better null safety</td>
+                    </tr>
+                    <tr>
+                        <td><code>IsPackable</code></td>
+                        <td>false</td>
+                        <td>Test projects are not packaged for distribution</td>
+                    </tr>
+                    <tr>
+                        <td><code>IsTestProject</code></td>
+                        <td>true</td>
+                        <td>Identifies this project as a test project</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h4>Package References</h4>
+            <div class="concept-box">
+                <p><strong>Automatically Included NuGet Packages:</strong></p>
+                
+                <h5>1. xunit (Core Framework)</h5>
+                <p>The main xUnit testing framework that provides:</p>
+                <ul>
+                    <li>Test attributes like <code>[Fact]</code> and <code>[Theory]</code></li>
+                    <li>Assertion methods for verifying test outcomes</li>
+                    <li>Test fixture and collection support</li>
+                </ul>
+                
+                <h5>2. Microsoft.NET.Test.Sdk</h5>
+                <p>Essential infrastructure that enables:</p>
+                <ul>
+                    <li>Test discovery by test runners</li>
+                    <li>Test execution in various environments</li>
+                    <li>Integration with Visual Studio and VS Code</li>
+                    <li>Command-line test execution via <code>dotnet test</code></li>
+                </ul>
+                
+                <h5>3. xunit.runner.visualstudio</h5>
+                <p>Test adapter that provides:</p>
+                <ul>
+                    <li>Visual Studio Test Explorer integration</li>
+                    <li>VS Code test discovery and execution</li>
+                    <li>Real-time test result reporting</li>
+                </ul>
+                
+                <h5>4. coverlet.collector</h5>
+                <p>Code coverage tool that enables:</p>
+                <ul>
+                    <li>Measuring which code is executed during tests</li>
+                    <li>Generating code coverage reports</li>
+                    <li>Identifying untested code paths</li>
+                </ul>
+            </div>
+            
+            <h4>Project References</h4>
+            <pre><code class="language-xml">&lt;ItemGroup&gt;
+  &lt;ProjectReference Include="..\MathApp.API\MathApp.API.csproj" /&gt;
+&lt;/ItemGroup&gt;</code></pre>
+            
+            <p>This section shows the reference to the MathApp.API project that was added earlier, allowing the test project to access and test classes from the API project.</p>
+            
+            <h4>Global Usings</h4>
+            <pre><code class="language-xml">&lt;ItemGroup&gt;
+  &lt;Using Include="Xunit" /&gt;
+&lt;/ItemGroup&gt;</code></pre>
+            
+            <p>This automatically includes the Xunit namespace in all test files, eliminating the need to add <code>using Xunit;</code> at the top of each test class.</p>
+        </section>
+
+        <section aria-labelledby="sample-test">
+            <h2 id="sample-test">Understanding the Sample Test</h2>
+            
+            <h3>Examining UnitTest1.cs</h3>
+            <p>The template includes a sample test file to verify the setup:</p>
+            
+            <pre><code class="language-csharp">namespace MathApp.Tests;
+
+public class UnitTest1
+{
+    [Fact]
+    public void Test1()
+    {
+        Assert.True(true);
+    }
+}</code></pre>
+            
+            <h3>Breaking Down the Test Structure</h3>
+            
+            <h4>Namespace Declaration</h4>
+            <pre><code class="language-csharp">namespace MathApp.Tests;</code></pre>
+            <p>File-scoped namespace declaration (C# 10+) that applies to the entire file.</p>
+            
+            <h4>Test Class</h4>
+            <pre><code class="language-csharp">public class UnitTest1</code></pre>
+            <p>A public class that contains test methods. Test classes should be public so the test runner can discover them.</p>
+            
+            <h4>Test Method</h4>
+            <pre><code class="language-csharp">[Fact]
+public void Test1()</code></pre>
+            
+            <div class="concept-box">
+                <p><strong>[Fact] Attribute:</strong> Marks a method as a test case that:</p>
+                <ul>
+                    <li>Takes no parameters</li>
+                    <li>Should always produce the same result</li>
+                    <li>Will be discovered and executed by the test runner</li>
+                </ul>
+            </div>
+            
+            <h4>Test Assertion</h4>
+            <pre><code class="language-csharp">Assert.True(true);</code></pre>
+            <p>A simple assertion that always passes. The <code>Assert</code> class provides various methods for verifying expected outcomes.</p>
+        </section>
+
+        <section aria-labelledby="running-tests">
+            <h2 id="running-tests">Running Your First Test</h2>
+            
+            <h3>Using the .NET CLI</h3>
+            <p>Run all tests in the solution from the command line:</p>
+            
+            <div class="command-box">
+                <code>dotnet test</code>
+            </div>
+            
+            <h4>Expected Output</h4>
+            <pre><code class="language-plaintext">Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: < 1 ms</code></pre>
+            
+            <div class="success-box">
+                <p><strong>Success Indicators:</strong></p>
+                <ul>
+                    <li><strong>Passed: 1</strong> - The sample test executed successfully</li>
+                    <li><strong>Failed: 0</strong> - No tests failed</li>
+                    <li><strong>Total: 1</strong> - One test was discovered and executed</li>
+                </ul>
+            </div>
+            
+            <h3>Running Tests from Specific Project</h3>
+            <p>To run tests only from the test project:</p>
+            
+            <div class="command-box">
+                <code>dotnet test MathApp.Tests\MathApp.Tests.csproj</code>
+            </div>
+            
+            <h3>Using Visual Studio Code Test Explorer</h3>
+            <div class="workflow-step">
+                <strong>Step 1:</strong> Install the C# Dev Kit extension (if not already installed)
+            </div>
+            <div class="workflow-step">
+                <strong>Step 2:</strong> Open the Testing view (flask icon in the sidebar)
+            </div>
+            <div class="workflow-step">
+                <strong>Step 3:</strong> Click "Run All Tests" or run individual tests
+            </div>
+            
+            <h3>Test Execution Options</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>dotnet test</code></td>
+                        <td>Run all tests in the solution</td>
+                    </tr>
+                    <tr>
+                        <td><code>dotnet test --verbosity detailed</code></td>
+                        <td>Run tests with detailed output</td>
+                    </tr>
+                    <tr>
+                        <td><code>dotnet test --filter "FullyQualifiedName~UnitTest1"</code></td>
+                        <td>Run specific tests matching the filter</td>
+                    </tr>
+                    <tr>
+                        <td><code>dotnet test --logger "console;verbosity=detailed"</code></td>
+                        <td>Run tests with detailed console logging</td>
+                    </tr>
+                    <tr>
+                        <td><code>dotnet test --collect:"XPlat Code Coverage"</code></td>
+                        <td>Run tests and collect code coverage data</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section aria-labelledby="next-steps">
+            <h2 id="next-steps">Next Steps: Writing Real Tests</h2>
+            
+            <h3>Creating Your First Real Test</h3>
+            <p>Now that the test project is set up, you can create meaningful tests. Here's an example:</p>
+            
+            <h4>1. Create a Calculator Class in the API Project</h4>
+            <pre><code class="language-csharp">// MathApp.API/Calculator.cs
+namespace MathApp.API;
+
+public class Calculator
+{
+    public int Add(int a, int b)
+    {
+        return a + b;
+    }
+    
+    public int Subtract(int a, int b)
+    {
+        return a - b;
+    }
+    
+    public int Multiply(int a, int b)
+    {
+        return a * b;
+    }
+    
+    public double Divide(int a, int b)
+    {
+        if (b == 0)
+            throw new DivideByZeroException("Cannot divide by zero");
+        
+        return (double)a / b;
+    }
+}</code></pre>
+            
+            <h4>2. Create Tests for the Calculator</h4>
+            <pre><code class="language-csharp">// MathApp.Tests/CalculatorTests.cs
+using MathApp.API;
+
+namespace MathApp.Tests;
+
+public class CalculatorTests
+{
+    private readonly Calculator _calculator;
+    
+    public CalculatorTests()
+    {
+        _calculator = new Calculator();
+    }
+    
+    [Fact]
+    public void Add_TwoPositiveNumbers_ReturnsCorrectSum()
+    {
+        // Arrange
+        int a = 5;
+        int b = 3;
+        
+        // Act
+        int result = _calculator.Add(a, b);
+        
+        // Assert
+        Assert.Equal(8, result);
+    }
+    
+    [Fact]
+    public void Subtract_TwoNumbers_ReturnsCorrectDifference()
+    {
+        // Arrange
+        int a = 10;
+        int b = 4;
+        
+        // Act
+        int result = _calculator.Subtract(a, b);
+        
+        // Assert
+        Assert.Equal(6, result);
+    }
+    
+    [Fact]
+    public void Divide_ByZero_ThrowsDivideByZeroException()
+    {
+        // Arrange
+        int a = 10;
+        int b = 0;
+        
+        // Act & Assert
+        Assert.Throws&lt;DivideByZeroException&gt;(() => _calculator.Divide(a, b));
+    }
+    
+    [Theory]
+    [InlineData(2, 3, 6)]
+    [InlineData(5, 4, 20)]
+    [InlineData(-3, 7, -21)]
+    public void Multiply_VariousInputs_ReturnsCorrectProduct(int a, int b, int expected)
+    {
+        // Act
+        int result = _calculator.Multiply(a, b);
+        
+        // Assert
+        Assert.Equal(expected, result);
+    }
+}</code></pre>
+            
+            <h3>Test Naming Conventions</h3>
+            <div class="concept-box">
+                <p><strong>Common Test Naming Pattern:</strong></p>
+                <pre><code>MethodName_StateUnderTest_ExpectedBehavior</code></pre>
+                
+                <p><strong>Examples:</strong></p>
+                <ul>
+                    <li><code>Add_TwoPositiveNumbers_ReturnsCorrectSum</code></li>
+                    <li><code>Divide_ByZero_ThrowsDivideByZeroException</code></li>
+                    <li><code>GetUser_WithValidId_ReturnsUser</code></li>
+                    <li><code>CreateOrder_WithInvalidData_ThrowsValidationException</code></li>
+                </ul>
+            </div>
+            
+            <h3>Arrange-Act-Assert Pattern</h3>
+            <div class="concept-box">
+                <p>Structure tests using the AAA pattern:</p>
+                <ul>
+                    <li><strong>Arrange:</strong> Set up test data and preconditions</li>
+                    <li><strong>Act:</strong> Execute the method or behavior being tested</li>
+                    <li><strong>Assert:</strong> Verify the expected outcome</li>
+                </ul>
+            </div>
+        </section>
+
+        <section aria-labelledby="common-assertions">
+            <h2 id="common-assertions">Common xUnit Assertions</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Assertion</th>
+                        <th>Purpose</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>Assert.Equal()</code></td>
+                        <td>Verifies two values are equal</td>
+                        <td><code>Assert.Equal(5, result)</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>Assert.NotEqual()</code></td>
+                        <td>Verifies two values are not equal</td>
+                        <td><code>Assert.NotEqual(0, count)</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>Assert.True()</code></td>
+                        <td>Verifies condition is true</td>
+                        <td><code>Assert.True(isValid)</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>Assert.False()</code></td>
+                        <td>Verifies condition is false</td>
+                        <td><code>Assert.False(hasErrors)</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>Assert.Null()</code></td>
+                        <td>Verifies object is null</td>
+                        <td><code>Assert.Null(user)</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>Assert.NotNull()</code></td>
+                        <td>Verifies object is not null</td>
+                        <td><code>Assert.NotNull(result)</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>Assert.Throws&lt;T&gt;()</code></td>
+                        <td>Verifies exception is thrown</td>
+                        <td><code>Assert.Throws&lt;ArgumentException&gt;(() => method())</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>Assert.Contains()</code></td>
+                        <td>Verifies collection contains item</td>
+                        <td><code>Assert.Contains(item, list)</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>Assert.Empty()</code></td>
+                        <td>Verifies collection is empty</td>
+                        <td><code>Assert.Empty(results)</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>Assert.InRange()</code></td>
+                        <td>Verifies value is within range</td>
+                        <td><code>Assert.InRange(score, 0, 100)</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section aria-labelledby="key-concepts">
+            <h2 id="key-concepts">Key Concepts Summary</h2>
+            
+            <dl>
+                <dt>Solution File (.sln)</dt>
+                <dd>A container file that organizes multiple related projects, enabling collective management, building, and dependency tracking across the entire application.</dd>
+                
+                <dt>xUnit</dt>
+                <dd>A free, open-source unit testing framework for .NET that provides attributes, assertions, and test execution capabilities. It's the modern successor to NUnit and is maintained by the .NET Foundation.</dd>
+                
+                <dt>Test Project</dt>
+                <dd>A separate project dedicated to containing unit tests, isolated from production code but referencing the application projects it tests.</dd>
+                
+                <dt>Project Reference</dt>
+                <dd>A link from one project to another that allows the first project to access types and members from the referenced project, essential for test projects to access application code.</dd>
+                
+                <dt>[Fact] Attribute</dt>
+                <dd>An xUnit attribute that marks a method as a unit test with no parameters. Tests marked with [Fact] are discovered and executed by test runners.</dd>
+                
+                <dt>[Theory] Attribute</dt>
+                <dd>An xUnit attribute for parameterized tests that can be run multiple times with different input data using [InlineData], [MemberData], or [ClassData] attributes.</dd>
+                
+                <dt>Test Runner</dt>
+                <dd>A tool or component that discovers and executes unit tests. The .NET Test SDK provides test runner functionality through the dotnet test command.</dd>
+                
+                <dt>Code Coverage</dt>
+                <dd>A measurement of how much of your code is executed during testing, helping identify untested code paths. Collected using tools like coverlet.collector.</dd>
+                
+                <dt>Assertion</dt>
+                <dd>A statement in a test that verifies an expected outcome. If the assertion fails, the test fails, indicating a problem with the code under test.</dd>
+                
+                <dt>Arrange-Act-Assert (AAA)</dt>
+                <dd>A common pattern for structuring unit tests: Arrange sets up test data, Act executes the method being tested, and Assert verifies the expected outcome.</dd>
+            </dl>
+        </section>
+
+        <section aria-labelledby="conclusion">
+            <h2 id="conclusion">Conclusion</h2>
+            
+            <p>You have successfully set up a complete unit test project structure for ASP.NET Core using xUnit. This demonstration covered:</p>
+            
+            <ul>
+                <li><strong>Solution Creation:</strong> Created a .sln file to organize multiple projects</li>
+                <li><strong>API Project:</strong> Generated an ASP.NET Core Web API project as the application to be tested</li>
+                <li><strong>Test Project:</strong> Created an xUnit test project with pre-configured packages</li>
+                <li><strong>Project Integration:</strong> Added both projects to the solution for unified management</li>
+                <li><strong>Project References:</strong> Configured the test project to reference the API project</li>
+                <li><strong>Package Understanding:</strong> Examined the essential NuGet packages for testing</li>
+                <li><strong>Test Execution:</strong> Verified the setup by running the sample test</li>
+            </ul>
+            
+            <div class="success-box">
+                <h3>What You've Achieved</h3>
+                <p>You now have a complete, properly configured test project structure that's ready for writing comprehensive unit tests. The project includes:</p>
+                <ul>
+                    <li>xUnit testing framework with all necessary dependencies</li>
+                    <li>Project references configured for testing the API</li>
+                    <li>Test discovery and execution capabilities</li>
+                    <li>Code coverage collection support</li>
+                    <li>Integration with Visual Studio Code and command-line tools</li>
+                </ul>
+            </div>
+            
+            <div class="key-point">
+                <h3>Best Practices for Unit Testing</h3>
+                <ul>
+                    <li><strong>Test Independence:</strong> Each test should be independent and not rely on other tests</li>
+                    <li><strong>Clear Naming:</strong> Use descriptive test names that explain what is being tested</li>
+                    <li><strong>Single Responsibility:</strong> Each test should verify one specific behavior</li>
+                    <li><strong>Fast Execution:</strong> Tests should run quickly to encourage frequent execution</li>
+                    <li><strong>Maintainability:</strong> Write tests that are easy to understand and maintain</li>
+                    <li><strong>Comprehensive Coverage:</strong> Test both success and failure scenarios</li>
+                    <li><strong>Meaningful Assertions:</strong> Use appropriate assertions that clearly verify expected outcomes</li>
+                </ul>
+            </div>
+            
+            <p>With this foundation in place, you can now write meaningful tests to verify your application's behavior, catch bugs early, and maintain code quality through automated testing.</p>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <p>Setting Up Your First Unit Test Project in ASP.NET Core with xUnit - Complete Project Structure and Configuration</p>
+    </footer>
+</body>
+</html>
