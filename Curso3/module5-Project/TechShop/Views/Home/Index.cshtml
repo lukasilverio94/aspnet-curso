@@ -1,0 +1,29 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@{
+    ViewData["Title"] = "Home Page";
+    ApplicationUser? currentUser = null;
+    IList<string>? roles = null;
+    if (User.Identity?.IsAuthenticated == true)
+    {
+        currentUser = await UserManager.GetUserAsync(User);
+        if (currentUser is not null)
+            roles = await UserManager.GetRolesAsync(currentUser);
+    }
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    @if (currentUser is not null)
+    {
+        <p class="lead">Signed in as <strong>@currentUser.FirstName @currentUser.LastName</strong> (@currentUser.Email).</p>
+        @if (roles is { Count: > 0 })
+        {
+            <p>Roles: <strong>@string.Join(", ", roles)</strong></p>
+        }
+    }
+    else
+    {
+        <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    }
+</div>

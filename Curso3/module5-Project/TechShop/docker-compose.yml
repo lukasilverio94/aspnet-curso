@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      # Key: The connection string in the container should use the service name "db" as the hostname, not localhost
+      - ConnectionStrings__DefaultConnection=Server=db;Database=Techshop;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;
+    depends_on:
+      - db
+
+  # SQL Server database
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourStrong!Passw0rd # Must meet SQL Server password complexity requirements
+    ports:
+      - "1433:1433" # Optional: If you need to connect to the database from outside the host, you can expose this port
+    volumes:
+      - sqlserver_data:/var/opt/mssql # Use a named volume to persist data and prevent loss when the container is deleted
+
+volumes:
+  sqlserver_data:

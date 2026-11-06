@@ -1,0 +1,62 @@
+@model CheckoutViewModel
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<h1 class="mb-4">Checkout</h1>
+
+<div class="row g-4">
+    <div class="col-lg-7 order-lg-1 order-2">
+        <h2 class="h5">Shipping &amp; payment</h2>
+        <form asp-action="ProcessOrder" method="post" novalidate>
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" readonly />
+                <span asp-validation-for="Email" class="text-danger"></span>
+                <div class="form-text">Must match your account email.</div>
+            </div>
+            <div class="mb-3">
+                <label asp-for="ShippingAddress" class="form-label"></label>
+                <textarea asp-for="ShippingAddress" class="form-control" rows="4" placeholder="Full name, street, city, postal code, country"></textarea>
+                <span asp-validation-for="ShippingAddress" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="PaymentMethod" class="form-label"></label>
+                <select asp-for="PaymentMethod" class="form-select">
+                    <option value="">— Select —</option>
+                    <option value="Card">Credit / debit card (simulated)</option>
+                    <option value="PayPal">PayPal (simulated)</option>
+                </select>
+                <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Place order</button>
+            <a class="btn btn-outline-secondary" asp-controller="Cart" asp-action="Index">Back to cart</a>
+        </form>
+    </div>
+    <div class="col-lg-5 order-lg-2 order-1">
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold">Order summary</div>
+            <ul class="list-group list-group-flush">
+                @foreach (var line in Model.Cart.Items)
+                {
+                    <li class="list-group-item d-flex justify-content-between gap-2">
+                        <span>@line.ProductName × @line.Quantity</span>
+                        <span class="text-nowrap">@line.LineTotal.ToString("C")</span>
+                    </li>
+                }
+            </ul>
+            <div class="card-body d-flex justify-content-between fw-bold">
+                <span>Total</span>
+                <span>@Model.Cart.Total.ToString("C")</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

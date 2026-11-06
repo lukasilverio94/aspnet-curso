@@ -1,0 +1,90 @@
+@model IReadOnlyList<Order>
+@{
+    ViewData["Title"] = "Orders";
+    var statuses = new[] { "Processing", "Shipped", "Completed", "Cancelled" };
+}
+
+<h1 class="mb-4">Orders</h1>
+
+@if (TempData["AdminMessage"] is string msg)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">@msg<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+@if (TempData["AdminError"] is string err)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">@err<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+<p><a class="btn btn-outline-secondary" asp-action="Dashboard">Dashboard</a></p>
+
+@foreach (var order in Model)
+{
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <span><strong>Order #@order.Id</strong> — @order.OrderDate.ToLocalTime().ToString("g")</span>
+            <span class="text-muted">@order.User.Email</span>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>Shipping</strong>
+                    <div class="small">@order.ShippingAddress</div>
+                </div>
+                <div class="col-md-3">
+                    <strong>Payment</strong>
+                    <div>@order.PaymentMethod · @order.PaymentStatus</div>
+                </div>
+                <div class="col-md-3 text-md-end">
+                    <strong>Total</strong> @order.Total.ToString("C")
+                </div>
+            </div>
+
+            <form asp-action="UpdateOrderStatus" method="post" class="row g-2 align-items-end mb-3">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@order.Id" />
+                <div class="col-auto">
+                    <label class="form-label mb-0 small">Status</label>
+                    <select name="status" class="form-select form-select-sm">
+                        @foreach (var s in statuses)
+                        {
+                            if (order.Status.Equals(s, StringComparison.OrdinalIgnoreCase))
+                            {
+                                <option value="@s" selected>@s</option>
+                            }
+                            else
+                            {
+                                <option value="@s">@s</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-sm btn-primary">Update status</button>
+                </div>
+            </form>
+
+            <h3 class="h6">Items</h3>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Product</th><th class="text-end">Unit</th><th class="text-end">Qty</th><th class="text-end">Subtotal</th></tr></thead>
+                    <tbody>
+                        @foreach (var line in order.OrderItems)
+                        {
+                            <tr>
+                                <td>@line.Product.Name</td>
+                                <td class="text-end">@line.UnitPrice.ToString("C")</td>
+                                <td class="text-end">@line.Quantity</td>
+                                <td class="text-end">@((line.UnitPrice * line.Quantity).ToString("C"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@if (Model.Count == 0)
+{
+    <p class="text-muted">No orders yet.</p>
+}

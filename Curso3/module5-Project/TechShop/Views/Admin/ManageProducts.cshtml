@@ -1,0 +1,47 @@
+@model IReadOnlyList<Product>
+@{
+    ViewData["Title"] = "Manage products";
+}
+
+<h1 class="mb-4">Manage products</h1>
+
+@if (TempData["AdminMessage"] is string msg)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">@msg<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+@if (TempData["AdminError"] is string err)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">@err<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+<p><a class="btn btn-primary" asp-action="CreateProduct">Add product</a>
+<a class="btn btn-outline-secondary" asp-action="Dashboard">Dashboard</a></p>
+
+<div class="table-responsive">
+    <table class="table align-middle">
+        <thead>
+            <tr><th></th><th>Name</th><th>Category</th><th class="text-end">Price</th><th class="text-end">Stock</th><th>Available</th><th></th></tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td style="width:64px"><img src="@p.ImageUrl" alt="" class="img-thumbnail bg-light" style="width:48px;height:48px;object-fit:contain;" /></td>
+                    <td>@p.Name</td>
+                    <td>@p.Category.Name</td>
+                    <td class="text-end">@p.Price.ToString("C")</td>
+                    <td class="text-end">@p.StockQuantity</td>
+                    <td>@(p.IsAvailable ? "Yes" : "No")</td>
+                    <td class="text-nowrap">
+                        <a class="btn btn-sm btn-outline-primary" asp-action="EditProduct" asp-route-id="@p.Id">Edit</a>
+                        <form asp-action="DeleteProduct" method="post" class="d-inline" onsubmit="return confirm('Delete this product?');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@p.Id" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

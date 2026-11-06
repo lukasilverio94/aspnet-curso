@@ -1,0 +1,78 @@
+@model IReadOnlyList<AdminUserListViewModel>
+@{
+    ViewData["Title"] = "Users";
+}
+
+<h1 class="mb-4">User accounts</h1>
+
+@if (TempData["AdminMessage"] is string msg)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">@msg<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+@if (TempData["AdminError"] is string err)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">@err<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+<p><a class="btn btn-outline-secondary" asp-action="Dashboard">Dashboard</a></p>
+
+<div class="table-responsive">
+    <table class="table align-middle">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Confirmed</th>
+                <th>Roles</th>
+                <th style="width:280px">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var u in Model)
+            {
+                var primaryRole = u.Roles.FirstOrDefault() ?? "Customer";
+                <tr>
+                    <td>@u.FirstName @u.LastName</td>
+                    <td>@u.Email</td>
+                    <td>@(u.EmailConfirmed ? "Yes" : "No")</td>
+                    <td>@string.Join(", ", u.Roles)</td>
+                    <td>
+                        <form asp-action="SetUserRole" method="post" class="d-inline-flex flex-wrap gap-1 align-items-center">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="userId" value="@u.UserId" />
+                            <select name="role" class="form-select form-select-sm" style="width:auto">
+                                @if (primaryRole == "Customer")
+                                {
+                                    <option value="Customer" selected>Customer</option>
+                                }
+                                else
+                                {
+                                    <option value="Customer">Customer</option>
+                                }
+                                @if (primaryRole == "Admin")
+                                {
+                                    <option value="Admin" selected>Admin</option>
+                                }
+                                else
+                                {
+                                    <option value="Admin">Admin</option>
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Set role</button>
+                        </form>
+                        <form asp-action="ToggleLockUser" method="post" class="d-inline ms-1">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="userId" value="@u.UserId" />
+                            <input type="hidden" name="enableLockout" value="@(u.IsLockedOut ? "false" : "true")" />
+                            <button type="submit" class="btn btn-sm @(u.IsLockedOut ? "btn-outline-success" : "btn-outline-warning")">
+                                @(u.IsLockedOut ? "Unlock" : "Lock")
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<p class="small text-muted">You cannot change your own role from this screen. Lock applies account lockout (sign-in blocked).</p>

@@ -1,0 +1,56 @@
+@model OrderConfirmationViewModel
+@{
+    ViewData["Title"] = "Order confirmation";
+    var o = Model.Order;
+}
+
+<div class="text-center mb-4">
+    <h1 class="h2">Thank you for your order</h1>
+    <p class="text-muted mb-0">Order #@o.Id · @o.OrderDate.ToLocalTime().ToString("g")</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Status</dt>
+                    <dd class="col-sm-8">@o.Status</dd>
+                    <dt class="col-sm-4">Payment</dt>
+                    <dd class="col-sm-8">@o.PaymentStatus (@o.PaymentMethod)</dd>
+                    <dt class="col-sm-4">Ship to</dt>
+                    <dd class="col-sm-8">@o.ShippingAddress</dd>
+                    <dt class="col-sm-4">Total</dt>
+                    <dd class="col-sm-8 fw-bold">@o.Total.ToString("C")</dd>
+                </dl>
+            </div>
+        </div>
+
+        <h2 class="h5">Items</h2>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th class="text-end">Price</th>
+                        <th class="text-end">Qty</th>
+                        <th class="text-end">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var line in o.OrderItems.OrderBy(x => x.Product.Name))
+                    {
+                        <tr>
+                            <td>@line.Product.Name</td>
+                            <td class="text-end">@line.UnitPrice.ToString("C")</td>
+                            <td class="text-end">@line.Quantity</td>
+                            <td class="text-end">@((line.UnitPrice * line.Quantity).ToString("C"))</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <a class="btn btn-primary" asp-controller="Product" asp-action="Index">Continue shopping</a>
+    </div>
+</div>

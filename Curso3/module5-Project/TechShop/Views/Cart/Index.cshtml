@@ -1,0 +1,81 @@
+@model CartIndexViewModel
+@{
+    ViewData["Title"] = "Shopping cart";
+}
+
+<h1 class="mb-4">Shopping cart</h1>
+
+@if (Model.Items.Count == 0)
+{
+    <p>Your cart is empty.</p>
+    <a class="btn btn-primary" asp-controller="Product" asp-action="Index">Browse products</a>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th style="width: 100px;">Image</th>
+                    <th>Product</th>
+                    <th class="text-end" style="width: 120px;">Price</th>
+                    <th style="width: 140px;">Quantity</th>
+                    <th class="text-end" style="width: 120px;">Line total</th>
+                    <th style="width: 80px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var line in Model.Items)
+                {
+                    <tr>
+                        <td>
+                            <img src="@line.ImageUrl" alt="" class="img-thumbnail bg-light" style="width: 72px; height: 72px; object-fit: contain;" />
+                        </td>
+                        <td>
+                            <strong>@line.ProductName</strong>
+                            @if (!string.IsNullOrWhiteSpace(line.Description))
+                            {
+                                <div class="small text-muted">@(line.Description.Length > 80 ? line.Description[..80] + "…" : line.Description)</div>
+                            }
+                        </td>
+                        <td class="text-end">@line.UnitPrice.ToString("C")</td>
+                        <td>
+                            <form asp-action="Update" method="post" class="d-flex gap-1">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="productId" value="@line.ProductId" />
+                                <input type="number" name="quantity" value="@line.Quantity" min="0" class="form-control form-control-sm" style="width: 4.5rem;" />
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">Update</button>
+                            </form>
+                        </td>
+                        <td class="text-end fw-semibold">@line.LineTotal.ToString("C")</td>
+                        <td>
+                            <form asp-action="Remove" method="post" onsubmit="return confirm('Remove this item?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="productId" value="@line.ProductId" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="4" class="text-end">Total</th>
+                    <th class="text-end">@Model.Total.ToString("C")</th>
+                    <th></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    <div class="d-flex flex-wrap gap-2 mt-3">
+        <a class="btn btn-outline-primary" asp-controller="Product" asp-action="Index">Continue shopping</a>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a class="btn btn-primary" asp-controller="Checkout" asp-action="Index">Checkout</a>
+        }
+        else
+        {
+            <a class="btn btn-primary" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Index", "Checkout")">Log in to checkout</a>
+        }
+    </div>
+}

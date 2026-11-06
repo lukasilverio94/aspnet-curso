@@ -1,0 +1,59 @@
+@model AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin dashboard";
+}
+
+<h1 class="mb-4">Admin dashboard</h1>
+
+@if (TempData["AdminMessage"] is string msg)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">@msg<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+@if (TempData["AdminError"] is string err)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">@err<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm"><div class="card-body"><h2 class="h5 text-muted">Products</h2><p class="display-6 mb-0">@Model.TotalProducts</p></div></div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm"><div class="card-body"><h2 class="h5 text-muted">Orders</h2><p class="display-6 mb-0">@Model.TotalOrders</p></div></div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm"><div class="card-body"><h2 class="h5 text-muted">Users</h2><p class="display-6 mb-0">@Model.TotalUsers</p></div></div>
+    </div>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <a class="btn btn-primary" asp-action="ManageProducts">Manage products</a>
+    <a class="btn btn-outline-primary" asp-action="ViewOrders">View orders</a>
+    <a class="btn btn-outline-secondary" asp-action="Users">User accounts</a>
+</div>
+
+<h2 class="h5">Recent orders</h2>
+@if (Model.RecentOrders.Count == 0)
+{
+    <p class="text-muted">No orders yet.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-sm">
+            <thead><tr><th>#</th><th>Date</th><th>Customer</th><th class="text-end">Total</th><th>Status</th></tr></thead>
+            <tbody>
+                @foreach (var o in Model.RecentOrders)
+                {
+                    <tr>
+                        <td>@o.Id</td>
+                        <td>@o.OrderDate.ToLocalTime().ToString("g")</td>
+                        <td>@o.User.Email</td>
+                        <td class="text-end">@o.Total.ToString("C")</td>
+                        <td>@o.Status</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
