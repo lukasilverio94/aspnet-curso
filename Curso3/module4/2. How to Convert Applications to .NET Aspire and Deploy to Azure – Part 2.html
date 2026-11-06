@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>.NET Aspire Local Testing and Azure Deployment</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5em;
+            color: #333;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 1em;
+            overflow-x: auto;
+            border-radius: 4px;
+            border-left: 4px solid #0066cc;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+        .skip-link:focus {
+            position: static;
+            width: auto;
+            height: auto;
+            margin: 10px;
+            padding: 10px;
+            background: #fff;
+            border: 2px solid #000;
+        }
+        h1 {
+            color: #0066cc;
+            border-bottom: 3px solid #0066cc;
+            padding-bottom: 0.3em;
+        }
+        h2 {
+            color: #0066cc;
+            margin-top: 1.5em;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 0.3em;
+        }
+        h3 {
+            color: #004a99;
+            margin-top: 1.2em;
+        }
+        h4 {
+            color: #005cb8;
+            margin-top: 1em;
+        }
+        .note {
+            background-color: #e7f3ff;
+            border-left: 4px solid #0066cc;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        .dashboard-features {
+            background-color: #fafafa;
+            padding: 1em;
+            border-radius: 4px;
+            margin: 1em 0;
+        }
+        .step-number {
+            display: inline-block;
+            background-color: #0066cc;
+            color: white;
+            width: 1.5em;
+            height: 1.5em;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 1.5em;
+            margin-right: 0.5em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <header role="banner">
+        <h1>.NET Aspire Local Testing and Azure Deployment</h1>
+    </header>
+
+    <main id="main-content" role="main">
+        <section aria-labelledby="introduction">
+            <h2 id="introduction">Introduction</h2>
+            <p>This tutorial demonstrates how to test your .NET Aspire configuration locally using the built-in dashboard, and then deploy the application to Azure Container Apps using Azure Developer CLI. You'll see automatic service orchestration, distributed tracing, and seamless cloud deployment in action.</p>
+        </section>
+
+        <section aria-labelledby="local-testing">
+            <h2 id="local-testing">Testing .NET Aspire Configuration Locally</h2>
+            <p>Before deploying to the cloud, it's important to test the application locally to ensure all services are properly configured and communicating.</p>
+
+            <h3>Step 1: Navigate to Root Directory</h3>
+            <p>In the terminal, navigate back to the root directory of your project:</p>
+            <pre><code class="language-bash">cd ..</code></pre>
+
+            <h3>Step 2: Run the Application</h3>
+            <p>Start the application using the App Host project:</p>
+            <pre><code class="language-bash">dotnet run --project ShoppingApp.AppHost</code></pre>
+
+            <div class="note">
+                <strong>What Happens:</strong> .NET Aspire automatically starts all services, assigns ports, and configures networking. Each service receives its own port assignment automatically without manual configuration.
+            </div>
+        </section>
+
+        <section aria-labelledby="aspire-dashboard">
+            <h2 id="aspire-dashboard">Exploring the .NET Aspire Dashboard</h2>
+            <p>Once the application starts, a dashboard URL appears in the terminal output. Select this URL to open the Aspire dashboard in your browser.</p>
+
+            <h3>Dashboard Overview</h3>
+            <div class="dashboard-features">
+                <p>The Aspire dashboard provides real-time monitoring of your distributed application with the following features:</p>
+                <ul>
+                    <li><strong>Service Status:</strong> All services displayed with their current health status</li>
+                    <li><strong>Resource Monitoring:</strong> View running services like shopping-api and shopping-web</li>
+                    <li><strong>Health Indicators:</strong> Each service shows "Running" and "Healthy" status</li>
+                    <li><strong>Distributed Tracing:</strong> Built-in observability for request flows</li>
+                </ul>
+            </div>
+
+            <h3>Viewing Distributed Traces</h3>
+            <p>To explore the distributed tracing capabilities:</p>
+            <ol>
+                <li>Select the <strong>Traces</strong> tab in the dashboard</li>
+                <li>Observe how .NET Aspire is prepared to trace requests flowing between services</li>
+            </ol>
+
+            <div class="success">
+                <strong>Built-in Observability:</strong> Even without making any requests yet, you can see that .NET Aspire has automatic tracing configured and ready to capture distributed transactions across your microservices.
+            </div>
+
+            <h3>Stopping the Local Application</h3>
+            <p>When finished testing locally, stop the application in the terminal:</p>
+            <pre><code class="language-bash">Ctrl+C</code></pre>
+        </section>
+
+        <section aria-labelledby="azure-deployment">
+            <h2 id="azure-deployment">Preparing for Azure Deployment</h2>
+            <p>To deploy the .NET Aspire application to Azure, you need to create configuration files that define the deployment pipeline and infrastructure.</p>
+
+            <h3>Step 1: Create GitHub Actions Deployment Workflow</h3>
+            <p>In the root directory, create a new file named:</p>
+            <pre><code class="language-plaintext">azure-deploy.yaml</code></pre>
+
+            <h4>GitHub Actions Workflow Configuration</h4>
+            <pre><code class="language-yaml">name: Deploy to Azure Container Apps
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+      
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      
+      - name: Deploy to Azure
+        run: |
+          azd deploy</code></pre>
+
+            <div class="note">
+                <strong>Purpose:</strong> This GitHub Actions workflow automatically builds and deploys your .NET Aspire application to Azure Container Apps whenever you push to the main branch.
+            </div>
+
+            <h3>Step 2: Create Azure Developer CLI Template</h3>
+            <p>Create another new file in the root directory named:</p>
+            <pre><code class="language-plaintext">azd-template.yaml</code></pre>
+
+            <h4>Azure Developer CLI Template Configuration</h4>
+            <pre><code class="language-yaml">name: ShoppingApp
+metadata:
+  template: aspire-app
+services:
+  shoppingapp-api:
+    project: ./ShoppingApp.API
+    language: dotnet
+    host: containerapp
+  shoppingapp-web:
+    project: ./ShoppingApp.Web
+    language: dotnet
+    host: containerapp
+    ingress:
+      external: true
+      targetPort: 8080</code></pre>
+
+            <div class="note">
+                <strong>Purpose:</strong> This template tells Azure Developer CLI how to deploy your services to Azure Container Apps, including which services need external access. The web application is configured with external ingress so users can access it from the internet.
+            </div>
+        </section>
+
+        <section aria-labelledby="azd-deployment">
+            <h2 id="azd-deployment">Deploying with Azure Developer CLI</h2>
+            <p>The Azure Developer CLI (azd) provides a streamlined way to deploy cloud-native applications to Azure.</p>
+
+            <h3>Step 1: Initialize Azure Deployment</h3>
+            <p>In the terminal, initialize the Azure Developer CLI for your project:</p>
+            <pre><code class="language-bash">azd init</code></pre>
+
+            <h4>Initialization Process</h4>
+            <p>The Azure Developer CLI will prompt you with questions:</p>
+            <ol>
+                <li><strong>How to initialize:</strong> Select "Scan the current directory"</li>
+                <li><strong>Confirm settings:</strong> Review and confirm the detected configuration</li>
+            </ol>
+
+            <div class="note">
+                <strong>What Happens:</strong> The Azure Developer CLI initializes your project for cloud deployment by scanning your application structure and creating the necessary configuration.
+            </div>
+
+            <h3>Step 2: Deploy to Azure</h3>
+            <p>Once initialization is complete, deploy the application:</p>
+            <pre><code class="language-bash">azd up</code></pre>
+
+            <h4>Authentication</h4>
+            <p>You will need to log in to Azure during this process. Follow the authentication prompts to sign in with your Azure credentials.</p>
+
+            <h4>Subscription Selection</h4>
+            <p>If you have multiple Azure subscriptions, you'll be prompted to select which subscription to use for deployment.</p>
+
+            <h3>Automated Azure Resource Creation</h3>
+            <div class="dashboard-features">
+                <p>The Azure Developer CLI automatically creates all necessary Azure resources:</p>
+                <ul>
+                    <li><strong>Resource Group:</strong> A container for all your application resources</li>
+                    <li><strong>Container Apps Environment:</strong> The hosting environment for your microservices</li>
+                    <li><strong>Individual Container Apps:</strong> Separate container apps for each service (shopping-api, shopping-web)</li>
+                    <li><strong>Application Insights:</strong> Monitoring and telemetry for observability</li>
+                    <li><strong>Networking:</strong> Virtual networks and ingress configuration</li>
+                    <li><strong>Scaling Rules:</strong> Automatic scaling policies for each service</li>
+                </ul>
+            </div>
+        </section>
+
+        <section aria-labelledby="verify-deployment">
+            <h2 id="verify-deployment">Verifying the Deployment in Azure</h2>
+            <p>After deployment completes, you can verify and manage your application through the Azure Portal.</p>
+
+            <h3>Accessing the Azure Portal</h3>
+            <p>Navigate to the Azure Portal and locate your Container Apps resource group. You should see:</p>
+            <ul>
+                <li>shopping-web container app</li>
+                <li>shopping-api container app</li>
+                <li>Container Apps Environment</li>
+                <li>Application Insights resource</li>
+            </ul>
+
+            <h3>Examining Container App Details</h3>
+            <p>Select the shopping-web container app to view its configuration:</p>
+
+            <h4>Container App Features</h4>
+            <div class="dashboard-features">
+                <ul>
+                    <li><strong>Automatic Scaling:</strong> Configured scale rules for handling load</li>
+                    <li><strong>Network Setup:</strong> Ingress and egress configuration</li>
+                    <li><strong>Health Status:</strong> Current health probes and status</li>
+                    <li><strong>Configuration:</strong> Environment variables and settings</li>
+                    <li><strong>Revisions:</strong> Deployment history and version management</li>
+                </ul>
+            </div>
+
+            <div class="success">
+                <strong>Automatic Configuration:</strong> .NET Aspire automatically configured all of these aspects during deployment. You didn't need to manually set up scaling, networking, or health checks.
+            </div>
+
+            <h3>Testing the Deployed Application</h3>
+            <p>To test your application running in Azure:</p>
+            <ol>
+                <li>In the Container App details, locate the <strong>Application URL</strong></li>
+                <li>Select the URL to open your deployed application</li>
+            </ol>
+
+            <div class="warning">
+                <strong>Note:</strong> If the container app shows as "Stopped," you may need to restart it from the Azure Portal. Container Apps can automatically stop when idle to save costs, depending on your scaling configuration.
+            </div>
+
+            <h4>Restarting a Container App</h4>
+            <p>If needed, restart the container app:</p>
+            <ol>
+                <li>Select the container app in the Azure Portal</li>
+                <li>Select <strong>Restart</strong> from the toolbar</li>
+                <li>Wait for the app to reach "Running" status</li>
+                <li>Access the application URL again</li>
+            </ol>
+        </section>
+
+        <section aria-labelledby="benefits">
+            <h2 id="benefits">Benefits of .NET Aspire for Cloud Deployment</h2>
+            
+            <h3>Development to Production Consistency</h3>
+            <p>The same observability features that work in development automatically carry through to production, providing consistent monitoring and debugging capabilities across all environments.</p>
+
+            <h3>Key Advantages</h3>
+            <dl>
+                <dt>Automatic Service Discovery</dt>
+                <dd>Services can find and communicate with each other without hardcoded URLs, working seamlessly in both local development and Azure production environments.</dd>
+
+                <dt>Integrated Observability</dt>
+                <dd>Built-in distributed tracing, logging, and metrics collection work automatically in development and production. Application Insights captures telemetry without additional configuration.</dd>
+
+                <dt>Automatic Scaling</dt>
+                <dd>Azure Container Apps automatically scale your services based on demand, with scaling rules configured by .NET Aspire during deployment.</dd>
+
+                <dt>Simplified Deployment</dt>
+                <dd>Azure Developer CLI handles infrastructure provisioning, container building, and deployment with a single command.</dd>
+
+                <dt>Infrastructure as Code</dt>
+                <dd>Deployment configuration is stored in YAML files, making it version-controlled, repeatable, and easy to modify.</dd>
+
+                <dt>Zero-Downtime Updates</dt>
+                <dd>Container Apps support revision management for blue-green deployments and gradual rollouts.</dd>
+            </dl>
+        </section>
+
+        <section aria-labelledby="workflow-summary">
+            <h2 id="workflow-summary">Complete Workflow Summary</h2>
+            
+            <h3>Local Development and Testing</h3>
+            <ol>
+                <li><span class="step-number">1</span>Run the application locally with <code>dotnet run --project ShoppingApp.AppHost</code></li>
+                <li><span class="step-number">2</span>Access the Aspire dashboard to monitor services</li>
+                <li><span class="step-number">3</span>View distributed traces and health status</li>
+                <li><span class="step-number">4</span>Test functionality and service communication</li>
+                <li><span class="step-number">5</span>Stop the application with Ctrl+C</li>
+            </ol>
+
+            <h3>Azure Deployment</h3>
+            <ol>
+                <li><span class="step-number">1</span>Create <code>azure-deploy.yaml</code> for GitHub Actions workflow</li>
+                <li><span class="step-number">2</span>Create <code>azd-template.yaml</code> for Azure configuration</li>
+                <li><span class="step-number">3</span>Run <code>azd init</code> to initialize the project</li>
+                <li><span class="step-number">4</span>Run <code>azd up</code> to deploy to Azure</li>
+                <li><span class="step-number">5</span>Authenticate with Azure credentials</li>
+                <li><span class="step-number">6</span>Select subscription and confirm deployment</li>
+                <li><span class="step-number">7</span>Verify deployment in Azure Portal</li>
+                <li><span class="step-number">8</span>Test the deployed application URL</li>
+            </ol>
+        </section>
+
+        <section aria-labelledby="conclusion">
+            <h2 id="conclusion">Conclusion</h2>
+            <p>.NET Aspire transforms traditional ASP.NET Core applications into cloud-native, observable, and easily deployable systems. The framework provides:</p>
+            
+            <ul>
+                <li><strong>Local Development Experience:</strong> Built-in dashboard with real-time monitoring and distributed tracing</li>
+                <li><strong>Automatic Infrastructure:</strong> Service discovery, networking, and container orchestration handled automatically</li>
+                <li><strong>Seamless Deployment:</strong> Single-command deployment to Azure with all infrastructure provisioned automatically</li>
+                <li><strong>Production Observability:</strong> Same monitoring capabilities in production as in development</li>
+                <li><strong>Cloud-Native Patterns:</strong> Automatic scaling, health checks, and resilience built in</li>
+            </ul>
+
+            <div class="success">
+                <strong>Result:</strong> Your application now runs successfully in Azure Container Apps with automatic service discovery, integrated observability, and automatic scaling—all configured by .NET Aspire without manual infrastructure setup.
+            </div>
+        </section>
+    </main>
+
+    <footer role="contentinfo">
+        <p>.NET Aspire Tutorial - Local Testing and Azure Deployment with Azure Developer CLI</p>
+    </footer>
+</body>
+</html>

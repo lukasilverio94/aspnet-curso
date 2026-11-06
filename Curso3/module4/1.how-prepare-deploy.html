@@ -1,0 +1,665 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preparing ASP.NET Core Applications for Production Deployment</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #ffffff;
+            color: #333;
+        }
+        
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+        
+        .skip-link:focus {
+            position: static;
+            width: auto;
+            height: auto;
+            margin: 10px;
+            padding: 10px;
+            background: #fff;
+            border: 2px solid #000;
+            z-index: 1000;
+        }
+        
+        header {
+            border-bottom: 3px solid #512bd4;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        h1 {
+            color: #512bd4;
+            margin: 0 0 0.5rem 0;
+        }
+        
+        h2 {
+            color: #512bd4;
+            margin-top: 2.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        h3 {
+            color: #6b3fc9;
+            margin-top: 1.5rem;
+        }
+        
+        h4 {
+            color: #7c4ddb;
+            margin-top: 1rem;
+        }
+        
+        code {
+            background-color: #f5f5f5;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #d73a49;
+        }
+        
+        pre {
+            background-color: #f6f8fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 1rem;
+            overflow-x: auto;
+            line-height: 1.45;
+        }
+        
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: #24292e;
+            font-size: 0.875rem;
+        }
+        
+        .concept-box {
+            background-color: #f0e6ff;
+            border-left: 4px solid #512bd4;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+        }
+        
+        .concept-box h4 {
+            margin-top: 0;
+            color: #512bd4;
+        }
+        
+        .security-note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ff9800;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+        
+        .security-note h4 {
+            margin-top: 0;
+            color: #e65100;
+        }
+        
+        .performance-tip {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+        
+        .performance-tip h4 {
+            margin-top: 0;
+            color: #2e7d32;
+        }
+        
+        .code-explanation {
+            background-color: #f0f0f0;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+        
+        .step-box {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+        
+        ul, ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+        }
+        
+        li {
+            margin: 0.5rem 0;
+        }
+        
+        dl {
+            margin: 1rem 0;
+        }
+        
+        dt {
+            font-weight: 600;
+            color: #512bd4;
+            margin-top: 1rem;
+        }
+        
+        dd {
+            margin-left: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .file-structure {
+            background-color: #fafafa;
+            border: 1px solid #e0e0e0;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        footer {
+            margin-top: 3rem;
+            padding-top: 1rem;
+            border-top: 2px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            pre {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <header role="banner">
+        <h1>Preparing ASP.NET Core Applications for Production Deployment</h1>
+        <p>Environment Configuration, Security, Performance Optimization, and Containerization</p>
+    </header>
+
+    <main id="main-content" role="main">
+        
+        <section aria-labelledby="introduction">
+            <h2 id="introduction">Introduction</h2>
+            <p>This tutorial covers the essential steps for preparing your ASP.NET Core application for production deployment. You'll learn how to configure environment-specific settings, secure sensitive data, optimize for performance, and create deployment packages that work reliably in production environments.</p>
+            
+            <p>We'll work with a Task Management API project in Visual Studio Code, demonstrating practical deployment preparation techniques applicable to any ASP.NET Core Web API project.</p>
+        </section>
+
+        <section aria-labelledby="learning-objectives">
+            <h2 id="learning-objectives">Learning Objectives</h2>
+            <ul>
+                <li>Configure environment-specific settings for development and production</li>
+                <li>Secure sensitive data using environment variables</li>
+                <li>Optimize application performance for production</li>
+                <li>Create Docker containers for consistent deployment</li>
+                <li>Validate deployment configurations before going live</li>
+                <li>Test applications in production-like environments</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="environment-configuration">
+            <h2 id="environment-configuration">Environment-Specific Configuration</h2>
+            
+            <p>ASP.NET Core applications require different configurations for development and production environments. Development environments need verbose logging and debugging tools, while production environments prioritize performance and security.</p>
+
+            <h3>Examining Development Configuration</h3>
+            
+            <p>The default <code>appsettings.json</code> file contains development-appropriate settings including connection strings and detailed logging configurations. While useful during development, these settings need adjustment for production use.</p>
+
+            <h3>Creating Production Configuration</h3>
+            
+            <div class="step-box">
+                <h4>Steps to Create appsettings.production.json</h4>
+                <ol>
+                    <li>Select the project root directory</li>
+                    <li>Open the context menu (right-click)</li>
+                    <li>Select "New File"</li>
+                    <li>Type: <code>appsettings.production.json</code></li>
+                    <li>Press Enter to create the file</li>
+                </ol>
+            </div>
+
+            <p>The production configuration file contains optimized settings for production deployment:</p>
+
+            <pre><code>{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Warning",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "ConnectionStrings": {
+    "DefaultConnection": ""
+  },
+  "AllowedHosts": "*"
+}</code></pre>
+
+            <div class="performance-tip">
+                <h4>Performance Optimization</h4>
+                <p>Notice the logging level is reduced to <code>Warning</code> for production. This improves performance by reducing log noise and only capturing important warnings and errors. Detailed logging levels like <code>Information</code> and <code>Debug</code> should remain in development configurations.</p>
+            </div>
+
+            <div class="security-note">
+                <h4>Security Best Practice</h4>
+                <p>The connection string is left empty in the configuration file as a placeholder. Production connection strings should <strong>never</strong> be stored in configuration files that are committed to source control. Instead, they will be injected securely through environment variables.</p>
+            </div>
+
+        </section>
+
+        <section aria-labelledby="environment-variables">
+            <h2 id="environment-variables">Securing Sensitive Data with Environment Variables</h2>
+            
+            <p>Sensitive configuration data like connection strings, API keys, and passwords should never be hard-coded in configuration files. Environment variables provide a secure mechanism for injecting these values at runtime.</p>
+
+            <h3>Configuring Environment Variable Support</h3>
+            
+            <p>Modify the <code>Program.cs</code> file to check for environment variables and use them when available:</p>
+
+            <pre><code>// Check for connection string from environment variable
+var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING") 
+    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
+builder.Services.AddDbContext&lt;ApplicationDbContext&gt;(options =>
+    options.UseSqlServer(connectionString));</code></pre>
+
+            <div class="concept-box">
+                <h4>How This Pattern Works</h4>
+                <p>The code attempts to retrieve the connection string from an environment variable named <code>CONNECTION_STRING</code>. If that environment variable doesn't exist (returns null), the null-coalescing operator (<code>??</code>) causes it to fall back to the value in the configuration file.</p>
+                <p><strong>Benefits:</strong></p>
+                <ul>
+                    <li>Production connection strings never exist in source control</li>
+                    <li>Maintains development convenience with config file fallback</li>
+                    <li>Works consistently across different hosting platforms</li>
+                    <li>Allows different connection strings per environment without code changes</li>
+                </ul>
+            </div>
+
+        </section>
+
+        <section aria-labelledby="docker-configuration">
+            <h2 id="docker-configuration">Creating Docker Containers for Deployment</h2>
+            
+            <p>Docker containers provide consistent, portable deployment packages that work reliably across different hosting environments. A well-configured Dockerfile enables reproducible builds and optimized production images.</p>
+
+            <h3>Creating the Dockerfile</h3>
+            
+            <div class="step-box">
+                <h4>Steps to Create Dockerfile</h4>
+                <ol>
+                    <li>Select the project root directory</li>
+                    <li>Open the context menu (right-click)</li>
+                    <li>Select "New File"</li>
+                    <li>Type: <code>Dockerfile</code> (no extension)</li>
+                    <li>Press Enter to create the file</li>
+                </ol>
+            </div>
+
+            <h3>Multi-Stage Dockerfile Configuration</h3>
+            
+            <p>A multi-stage Dockerfile separates build dependencies from runtime dependencies, creating smaller and more secure production containers:</p>
+
+            <pre><code># Build stage
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /app
+
+# Copy project files and restore dependencies
+COPY *.csproj ./
+RUN dotnet restore
+
+# Copy remaining files and build
+COPY . ./
+RUN dotnet publish -c Release -o out
+
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+WORKDIR /app
+COPY --from=build /app/out .
+
+# Expose port
+EXPOSE 80
+
+# Set entry point
+ENTRYPOINT ["dotnet", "TaskManagementAPI.dll"]</code></pre>
+
+            <div class="concept-box">
+                <h4>Multi-Stage Build Benefits</h4>
+                <p>This Dockerfile uses two stages:</p>
+                <ul>
+                    <li><strong>Build Stage:</strong> Uses the full .NET SDK image to compile the application. This image includes all build tools and dependencies.</li>
+                    <li><strong>Runtime Stage:</strong> Uses the lightweight ASP.NET Core runtime image, copying only the compiled application from the build stage.</li>
+                </ul>
+                <p><strong>Advantages:</strong></p>
+                <ul>
+                    <li>Smaller production image size (runtime-only vs. full SDK)</li>
+                    <li>Improved security (fewer tools available in production container)</li>
+                    <li>Faster deployment and container startup times</li>
+                    <li>Reduced attack surface in production</li>
+                </ul>
+            </div>
+
+        </section>
+
+        <section aria-labelledby="production-optimizations">
+            <h2 id="production-optimizations">Production Performance Optimizations</h2>
+            
+            <p>Production environments benefit from specific optimizations that improve performance and security without affecting the development experience.</p>
+
+            <h3>Configuring Production-Specific Features</h3>
+            
+            <p>Add environment-specific checks to <code>Program.cs</code> to enable production optimizations:</p>
+
+            <pre><code>// Production-specific optimizations
+if (app.Environment.IsProduction())
+{
+    // Enable response compression
+    app.UseResponseCompression();
+    
+    // Enable HTTPS redirection
+    app.UseHttpsRedirection();
+    
+    // Add security headers
+    app.Use(async (context, next) =>
+    {
+        context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
+        context.Response.Headers.Add("X-Frame-Options", "DENY");
+        context.Response.Headers.Add("X-XSS-Protection", "1; mode=block");
+        await next();
+    });
+}</code></pre>
+
+            <div class="performance-tip">
+                <h4>Performance Enhancements Explained</h4>
+                <dl>
+                    <dt>Response Compression</dt>
+                    <dd>Compresses HTTP responses using Gzip or Brotli, reducing bandwidth usage and improving response times for clients.</dd>
+                    
+                    <dt>HTTPS Redirection</dt>
+                    <dd>Automatically redirects HTTP requests to HTTPS, ensuring all production traffic is encrypted.</dd>
+                    
+                    <dt>Security Headers</dt>
+                    <dd>Adds protective HTTP headers that prevent common web vulnerabilities like clickjacking and XSS attacks.</dd>
+                </dl>
+            </div>
+
+            <p>These optimizations only apply in production environments, allowing developers to work efficiently in development without additional security layers that might complicate debugging.</p>
+
+        </section>
+
+        <section aria-labelledby="launch-settings">
+            <h2 id="launch-settings">Configuring Launch Settings for Testing</h2>
+            
+            <p>Launch settings allow you to test production configurations locally before deployment, providing a safe validation environment.</p>
+
+            <h3>Adding a Production Profile</h3>
+            
+            <p>Modify <code>Properties/launchSettings.json</code> to include a production testing profile:</p>
+
+            <pre><code>{
+  "profiles": {
+    "Development": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:5001;http://localhost:5000"
+    },
+    "Production": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Production"
+      },
+      "applicationUrl": "https://localhost:5001;http://localhost:5000"
+    }
+  }
+}</code></pre>
+
+            <div class="concept-box">
+                <h4>Benefits of Production Profile</h4>
+                <p>A production launch profile provides:</p>
+                <ul>
+                    <li>Safe way to test production behavior without actual deployment</li>
+                    <li>Validation of production configurations locally</li>
+                    <li>Debugging capability for environment-specific issues</li>
+                    <li>Complete environment testing before going live</li>
+                </ul>
+                <p>You can select this profile in Visual Studio Code or Visual Studio to run your application with production settings on your local machine.</p>
+            </div>
+
+        </section>
+
+        <section aria-labelledby="docker-compose">
+            <h2 id="docker-compose">Docker Compose for Multi-Container Testing</h2>
+            
+            <p>Docker Compose allows you to define and run multi-container applications, enabling testing in production-like environments that include databases, caching layers, and other dependencies.</p>
+
+            <h3>Creating Docker Compose Configuration</h3>
+            
+            <div class="step-box">
+                <h4>Steps to Create docker-compose.yml</h4>
+                <ol>
+                    <li>Select the project root directory</li>
+                    <li>Open the context menu (right-click)</li>
+                    <li>Select "New File"</li>
+                    <li>Type: <code>docker-compose.yml</code></li>
+                    <li>Press Enter to create the file</li>
+                </ol>
+            </div>
+
+            <p>Example Docker Compose configuration for testing:</p>
+
+            <pre><code>version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - CONNECTION_STRING=${DATABASE_CONNECTION_STRING}
+    depends_on:
+      - database
+  
+  database:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Password
+    ports:
+      - "1433:1433"</code></pre>
+
+            <p>This configuration allows testing the application in a containerized environment that closely mimics production deployment, including database dependencies.</p>
+
+        </section>
+
+        <section aria-labelledby="validation">
+            <h2 id="validation">Validating Deployment Configuration</h2>
+            
+            <p>Before deploying to production, validate that all configurations are correct and the application builds and runs successfully.</p>
+
+            <h3>Building a Release Version</h3>
+            
+            <p>Open the integrated terminal (Terminal → New Terminal) and execute:</p>
+
+            <pre><code>dotnet build -c Release</code></pre>
+
+            <div class="code-explanation">
+                <p>The <code>-c Release</code> flag creates an optimized release build with:</p>
+                <ul>
+                    <li>Code optimizations enabled</li>
+                    <li>Debug symbols removed</li>
+                    <li>Smaller output size</li>
+                    <li>Better runtime performance</li>
+                </ul>
+                <p>A successful build confirms that the production configuration is syntactically correct and all dependencies are properly resolved.</p>
+            </div>
+
+            <h3>Building the Docker Image</h3>
+            
+            <p>Create the Docker container image to validate the multi-stage build process:</p>
+
+            <pre><code>docker build -t taskmanagement .</code></pre>
+
+            <div class="code-explanation">
+                <p>This command:</p>
+                <ul>
+                    <li>Reads the Dockerfile in the current directory</li>
+                    <li>Executes the multi-stage build process</li>
+                    <li>Tags the resulting image as "taskmanagement"</li>
+                    <li>Validates that the application compiles cleanly in the container environment</li>
+                </ul>
+                <p>A successful Docker build is a key validation checkpoint, confirming the image is ready for deployment to any Docker-compatible hosting platform.</p>
+            </div>
+
+            <h3>Testing the Container Locally</h3>
+            
+            <p>Run the container to test it in a production-like environment:</p>
+
+            <pre><code>docker run -d -p 5000:80 taskmanagement</code></pre>
+
+            <div class="code-explanation">
+                <p>This command:</p>
+                <ul>
+                    <li><code>-d</code>: Runs the container in detached mode (background)</li>
+                    <li><code>-p 5000:80</code>: Maps port 5000 on your machine to port 80 in the container</li>
+                    <li><code>taskmanagement</code>: Specifies the image to run</li>
+                </ul>
+                <p>The application is now running in a production-like containerized environment, accessible at <code>http://localhost:5000</code>. This validates the complete deployment package before pushing to production hosting.</p>
+            </div>
+
+        </section>
+
+        <section aria-labelledby="deployment-checklist">
+            <h2 id="deployment-checklist">Production Deployment Checklist</h2>
+            
+            <p>Use this checklist to ensure your application is fully prepared for production deployment:</p>
+
+            <ol>
+                <li><strong>Environment Configuration</strong>
+                    <ul>
+                        <li>Created <code>appsettings.production.json</code> with appropriate settings</li>
+                        <li>Reduced logging levels to Warning or Error</li>
+                        <li>Configured environment-specific connection strings</li>
+                    </ul>
+                </li>
+                <li><strong>Security</strong>
+                    <ul>
+                        <li>Configured environment variables for sensitive data</li>
+                        <li>Removed hard-coded credentials from source control</li>
+                        <li>Added security headers for production</li>
+                        <li>Enabled HTTPS redirection</li>
+                    </ul>
+                </li>
+                <li><strong>Performance</strong>
+                    <ul>
+                        <li>Enabled response compression</li>
+                        <li>Optimized logging levels</li>
+                        <li>Created release build configuration</li>
+                    </ul>
+                </li>
+                <li><strong>Containerization</strong>
+                    <ul>
+                        <li>Created multi-stage Dockerfile</li>
+                        <li>Configured Docker Compose for testing</li>
+                        <li>Built and tested Docker image locally</li>
+                    </ul>
+                </li>
+                <li><strong>Validation</strong>
+                    <ul>
+                        <li>Successful release build</li>
+                        <li>Successful Docker image build</li>
+                        <li>Tested application in containerized environment</li>
+                        <li>Verified production settings locally</li>
+                    </ul>
+                </li>
+            </ol>
+
+        </section>
+
+        <section aria-labelledby="hosting-platforms">
+            <h2 id="hosting-platforms">Compatible Hosting Platforms</h2>
+            
+            <p>With proper deployment preparation, your ASP.NET Core application can be deployed to various hosting platforms:</p>
+
+            <dl>
+                <dt>Azure App Service</dt>
+                <dd>Microsoft's fully managed platform for hosting web applications with built-in scaling and monitoring.</dd>
+                
+                <dt>AWS Elastic Beanstalk</dt>
+                <dd>Amazon's platform for deploying and scaling web applications with automatic infrastructure management.</dd>
+                
+                <dt>Docker-Compatible Hosts</dt>
+                <dd>Any platform supporting Docker containers, including Kubernetes clusters, Docker Swarm, or standalone Docker hosts.</dd>
+                
+                <dt>Azure Container Instances</dt>
+                <dd>Serverless containers in Azure for simple, fast deployment without managing infrastructure.</dd>
+                
+                <dt>Google Cloud Run</dt>
+                <dd>Fully managed platform for deploying containerized applications with automatic scaling.</dd>
+                
+                <dt>On-Premises Servers</dt>
+                <dd>Traditional servers running Windows or Linux with Docker or direct .NET Core runtime deployment.</dd>
+            </dl>
+
+        </section>
+
+        <section aria-labelledby="conclusion">
+            <h2 id="conclusion">Conclusion</h2>
+            
+            <p>You have successfully prepared your ASP.NET Core application for production deployment. The key accomplishments include:</p>
+
+            <ul>
+                <li><strong>Environment Configuration:</strong> Created production-specific settings that optimize performance while maintaining development convenience</li>
+                <li><strong>Security:</strong> Implemented secure handling of sensitive data through environment variables, ensuring credentials never exist in source control</li>
+                <li><strong>Performance Optimization:</strong> Configured production-specific enhancements including response compression, reduced logging, and security headers</li>
+                <li><strong>Containerization:</strong> Created Docker containers using multi-stage builds for consistent, portable deployment packages</li>
+                <li><strong>Validation:</strong> Built and tested the application in production-like environments to ensure reliability</li>
+            </ul>
+
+            <p>Your application is now ready for reliable production deployment across various hosting platforms. The Docker container provides a consistent deployment package that works identically across development, testing, and production environments, reducing deployment-related issues and enabling confident releases.</p>
+
+            <p>These deployment preparation techniques form the foundation of professional DevOps practices, ensuring your applications run reliably and securely in production environments.</p>
+
+        </section>
+
+    </main>
+
+    <footer role="contentinfo">
+        <p>ASP.NET Core Production Deployment Tutorial - Environment Configuration, Security, Performance, and Containerization</p>
+    </footer>
+
+</body>
+</html>
+```
